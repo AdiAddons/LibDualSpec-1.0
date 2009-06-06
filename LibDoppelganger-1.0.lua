@@ -1,5 +1,5 @@
 --[[
-LibDoppelganger-1.0 - Library providing automatic profile switching 
+LibDoppelganger-1.0 - Adds dual spec support to AceDB databases
 Copyright (C) 2009 Adirelle
 
 All rights reserved.
@@ -50,12 +50,12 @@ lib.ace3OptionHandlers = lib.ace3OptionHandlers or {}
 lib.ace3HandlerPrototype = lib.ace3HandlerPrototype or {}
 
 lib.ace2Registry = lib.ace2Registry or {}
+lib.ace2OptionRegistry = lib.ace2OptionRegistry or {}
+lib.ace2HandlerPrototype = lib.ace2HandlerPrototype or {}
 
 --------------------------------------------------------------------------------
 -- Locals
 --------------------------------------------------------------------------------
-
-local eventFrame = lib.eventFrame
 
 local ace3Registry = lib.ace3Registry
 local ace3OptionTemplate = lib.ace3OptionTemplate
@@ -64,6 +64,8 @@ local ace3OptionHandlers = lib.ace3OptionHandlers
 local ace3HandlerPrototype = lib.ace3HandlerPrototype
 
 local ace2Registry = lib.ace2Registry
+local ace2OptionRegistry = lib.ace2OptionRegistry
+local ace2HandlerPrototype = lib.ace2HandlerPrototype
 
 -- "Externals"
 local AceDB2 = AceLibrary and AceLibrary:HasInstance('AceDB-2.0') and AceLibrary:GetInstance('AceDB-2.0')
@@ -99,15 +101,11 @@ local function UpdateAceDB3(target, db)
 	end
 end
 
-local function AceDB3TalentSwitch()
-	for target, db in pairs(ace3Registry) do
-		UpdateAceDB3(target, db)
-	end
-end
-
 function lib:EnhanceAceDB3(target)
 	AceDB3 = AceDB3 or LibStub('AceDB-3.0', true)
-	if not AceDB3 or not AceDB3.db_registry[target] then
+	if type(target) ~= "table" then
+		error("Usage: LibDoppelganger:EnhanceAceDB3(target): target should be a table.", 2)
+	elseif not AceDB3 or not AceDB3.db_registry[target] then
 		error("Usage: LibDoppelganger:EnhanceAceDB3(target): target should be an AceDB-3.0 database.", 2)
 	elseif target.parent then
 		error("Usage: LibDoppelganger:EnhanceAceDB3(target): cannot enhance a namespace.", 2)
@@ -190,7 +188,7 @@ function ace3HandlerPrototype:HasOnlyOneTalentGroup()
 end
 
 -- Embed our options into an Ace3 option table
-local function EnhanceAce3OptionTable(optionTable)
+local function EnhanceAce3OptionTable(optionTable, target)
 	ace3OptionTables[optionTable] = true
 	for k,v in pairs(ace3OptionTemplate) do
 		optionTable[k] = v
@@ -205,12 +203,18 @@ local function EnhanceAce3OptionHandler(handler, target)
 	end
 end
 
-function lib:EnhanceAceDBOptions3(options)
-	local target = options and options.handler and options.handler.db
+function lib:EnhanceAceDBOptions3(optionTable, target)
 	AceDBOptions3 = AceDBOptions3 or LibStub('AceDBOptions-3.0', true)
-	local optionTable = AceDBOptions3 and AceDBOptions3.optionTables[target]
-	if not optionTable then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(target): no AceDBOptions-3.0 options for target.", 2)
+	if type(optionTable) ~= "table" then
+		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable should be a table.", 2)
+	elseif type(target) ~= "table" then
+		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): target should be a table.", 2)
+	elseif not (AceDBOptions3 and AceDBOptions3.optionTables[optionTable]) then
+		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable is not an AceDBOptions-3.0 table.", 2)
+	elseif optionTable.handler.db ~= target then
+		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable must be the option table of target.", 2)
+	elseif not ace3Registry[target] then
+		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): EnhanceAceDB3(target) should be called before EnhanceAceDBOptions3(optionTable, target).", 2)
 	end
 	if not optionTable.plugins then
 		optionTable.plugins = {}
@@ -222,7 +226,7 @@ function lib:EnhanceAceDBOptions3(options)
 	EnhanceAce3OptionTable(optionTable.plugins[MAJOR])
 end
 
--- Update existing handlers and option tables
+-- Upgrade existing handlers and option tables
 for handler, target in pairs(ace3OptionHandlers) do
 	EnhanceAce3OptionHandler(handler, target)
 end
@@ -246,56 +250,125 @@ local function UpdateAceDB2(target, db)
 	end
 end
 
-local function AceDB2TalentSwitch()
-	for target, db in pairs(ace2Registry) do
-		UpdateAceDB2(target, db)
-	end
-end
-
 function lib:EnhanceAceDB2(target)
 	AceDB2 = AceDB2 or (AceLibrary and AceLibrary:HasInstance('AceDB-2.0') and AceLibrary('AceDB-2.0'))
-	if not AceDB2 or not AceDB2.registry[target] then
-		error("Usage: LibDoppelganger:EnhanceAceDB2(db): db should embed AceDB-2.0.", 2)
+	if type(target) ~= "table" then
+		error("Usage: LibDoppelganger:EnhanceAceDB2(target): target be a table.", 2)
+	elseif not AceDB2 or not AceDB2.registry[target] then
+		error("Usage: LibDoppelganger:EnhanceAceDB2(target): target should embed AceDB-2.0.", 2)
 	elseif target.db.db then
-		error("Usage: LibDoppelganger:EnhanceAceDB2(db): cannot enhance a namespace.", 2)
+		error("Usage: LibDoppelganger:EnhanceAceDB2(target): cannot enhance a namespace.", 2)
 	end
 	local db = target:AcquireDBNamespace(MAJOR)
 	if not db.char.talentGroup then
 		db.char.talentGroup = lib.talentGroup
 		db.char.alternateProfile = select(2, target:GetProfile())
 		db.char.autoSwitch = false		
-	end
+	end 
 	ace2Registry[target] = db
 	UpdateAceDB2(target, db)
+end
+
+--------------------------------------------------------------------------------
+-- AceDB-2.0 option support
+--------------------------------------------------------------------------------
+
+function ace2HandlerPrototype:GetAlternateProfile()
+	return self.db.char.alternateProfile
+end
+
+function ace2HandlerPrototype:SetAlternateProfile(value)
+	self.db.char.alternateProfile = value
+end
+
+function ace2HandlerPrototype:GetAutoSwitch()
+	return self.db.char.autoSwitch
+end
+
+function ace2HandlerPrototype:SetAutoSwitch(value)
+	self.db.char.autoSwitch = value
+	UpdateAceDB(self.target, self.db)
+end
+
+local function EnhanceAceDBOptions2(optionTable, handler)
+	-- Update the handler
+	for k,v in pairs(ace2HandlerPrototype) do
+		handler[k] = v
+	end
+	
+	-- Update the option table
+	local options = optionTable.profile.args
+
+	-- Enforce ordering of existing options
+	options.choose.order = 1
+	options.copy.order = 2
+	options.other.order = 3
+	options.delete.orger = 4
+	options.reset.order = 5
+	
+	-- Add our options
+	options.autoSwitch = {
+		name = L_AUTOSWITCH,
+		desc = L_AUTOSWITCH_DESC,
+		order = 1.1,
+		handler = handler,
+		type = 'text',
+		get = "GetAutoSwitch",
+		set = "SetAutoSwitch",
+	}
+	
+	options.alternateProfile = {
+		name = L_ALTERNATE_PROFILE,
+		desc = L_ALTERNATE_PROFILE_DESC,
+		order = 1.1,
+		type = 'text',
+		handler = handler,
+		get = "GetAlternateProfile",
+		set = "SetAlternateProfile",
+		validate = handler.target['acedb-profile-list']
+	}
+end
+
+function lib:EnhanceAceDBOptions2(optionTable, target)
+	AceDB2 = AceDB2 or (AceLibrary and AceLibrary:HasInstance('AceDB-2.0') and AceLibrary('AceDB-2.0'))
+	if type(optionTable) ~= "table" then
+		error("Usage: LibDoppelganger:EnhanceAceDBOptions2(optionTable, target): optionTable should be a table.", 2)
+	elseif type(target) ~= "table" then
+		error("Usage: LibDoppelganger:EnhanceAceDBOptions2(optionTable, target): target should be a table.", 2)
+	elseif not AceDB2 or not AceDB2.registry[target] then
+		error("Usage: LibDoppelganger:EnhanceAceDBOptions2(optionTable, target): optionTable is not an AceDB-2.0 table.", 2)
+	elseif not ace2Registry[target] then
+		error("Usage: LibDoppelganger:EnhanceAceDBOptions2(optionTable, target): EnhanceAceDB2(target) should be called before EnhanceAceDBOptions2(optionTable, target).", 2)
+	end
+	if not ace2OptionRegistry[target] then
+		ace2OptionRegistry[target] = {
+			target = target,
+			db = ace2Registry[target] 
+		}
+	end
+	EnhanceAceDBOptions2(optionTable, ace2OptionRegistry[target])
+end
+
+-- Upgrade existing option tables
+for optionTable, handler in pairs(ace2OptionRegistry) do
+	EnhanceAceDBOptions2(optionTable, handler)
 end
 
 --------------------------------------------------------------------------------
 -- Switching logic
 --------------------------------------------------------------------------------
 
-eventFrame:SetScript('OnEvent', function(self, event, ...) self[event](self, event, ...) end)
-
-eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
-function eventFrame:PLAYER_TALENT_UPDATE()
+lib.eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
+lib.eventFrame:SetScript('OnEvent', function()
 	local newTalentGroup = GetActiveTalentGroup()
 	if lib.talentGroup ~= newTalentGroup then
 		lib.talentGroup = newTalentGroup
-		AceDB3TalentSwitch()
-		AceDB2TalentSwitch()
-	end
-end
-
---------------------------------------------------------------------------------
--- Mass testing
---------------------------------------------------------------------------------
-
---[=[@debug@
-AceDB3 = AceDB3 or LibStub('AceDB-3.0', true)
-if AceDB3 then
-	for target in pairs(AceDB3.db_registry) do
-		if not target.parent then
-			lib:EnhanceAceDB3(target)
+		for target, db in pairs(ace3Registry) do
+			UpdateAceDB3(target, db)
+		end
+		for target, db in pairs(ace2Registry) do
+			UpdateAceDB2(target, db)
 		end
 	end
-end
---@end-debug@]=]
+end)
+

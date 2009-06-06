@@ -2,9 +2,10 @@
 ## LoadOnDemand: 1
 ## Title: Lib: Doppelganger-1.0
 ## Version: @project-version@
-## Notes: A library providing profile switching based on talent spec
+## X-Date: @project-date@
+## Notes: A library adding dual spec support to AceDB databases
 ## Author: Adirelle
-## OptionalDeps: LibStub, Ace3
+## OptionalDeps: LibStub, Ace2, Ace3
 
 LibStub.lua
 LibDoppelganger-1.0.lua
