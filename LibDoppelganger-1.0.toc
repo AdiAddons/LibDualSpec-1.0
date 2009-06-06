@@ -1,0 +1,10 @@
+## Interface: 30100
+## LoadOnDemand: 1
+## Title: Lib: Doppelganger-1.0
+## Version: @project-version@
+## Notes: A library providing profile switching based on talent spec
+## Author: Adirelle
+## OptionalDeps: LibStub, Ace3
+
+LibStub.lua
+LibDoppelganger-1.0.lua
