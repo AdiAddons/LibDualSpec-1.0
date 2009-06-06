@@ -44,9 +44,7 @@ lib.talentGroup = lib.talentGroup or GetActiveTalentGroup()
 lib.eventFrame = lib.eventFrame or CreateFrame("Frame")
 
 lib.ace3Registry = lib.ace3Registry or {}
-lib.ace3OptionTemplate = lib.ace3OptionTemplate or {}
-lib.ace3OptionTables = lib.ace3OptionTables or {}
-lib.ace3OptionHandlers = lib.ace3OptionHandlers or {}
+lib.ace3OptionRegistry = lib.ace3OptionRegistry or {}
 lib.ace3HandlerPrototype = lib.ace3HandlerPrototype or {}
 
 lib.ace2Registry = lib.ace2Registry or {}
@@ -58,9 +56,7 @@ lib.ace2HandlerPrototype = lib.ace2HandlerPrototype or {}
 --------------------------------------------------------------------------------
 
 local ace3Registry = lib.ace3Registry
-local ace3OptionTemplate = lib.ace3OptionTemplate
-local ace3OptionTables = lib.ace3OptionTables
-local ace3OptionHandlers = lib.ace3OptionHandlers
+local ace3OptionRegistry = lib.ace3OptionRegistry
 local ace3HandlerPrototype = lib.ace3HandlerPrototype
 
 local ace2Registry = lib.ace2Registry
@@ -124,83 +120,82 @@ end
 -- AceDBOptions-3.0 support
 --------------------------------------------------------------------------------
 
--- Options
-
-ace3OptionTemplate.doppelgangerDesc = {
-	name = L_DOPPELGANGER_DESC,
-	--name = 'You can select a profile to switch to when you activate your alternate talents',
-	type = 'description',
-	order = 40.1,
-	hidden = 'HasOnlyOneTalentGroup',
-}
-
-ace3OptionTemplate.autoSwitch = {
-	name = L_AUTOSWITCH,
-	desc = L_AUTOSWITCH_DESC,
--- 	name = 'Automatically switch',
---	desc = 'Check this box to automatically swich to your alternate profile on talent switch.',
-	type = 'toggle',
-	order = 40.2,
-	get = 'GetAutoSwitch',
-	set = 'SetAutoSwitch',
-	hidden = 'HasOnlyOneTalentGroup',
-}
-
-ace3OptionTemplate.alternateProfile = {
-	name = L_ALTERNATE_PROFILE,
-	desc = L_ALTERNATE_PROFILE_DESC,
---	name = 'Alternate profile',
---	desc = 'Select the profile to activate',
-	type = 'select',
-	order = 40.3,
-	get = "GetAlternateProfile",
-	set = "SetAlternateProfile",
-	values = "ListProfiles",
-	arg = "common",
-	hidden = 'HasOnlyOneTalentGroup',
-	disabled = function(info) return not info.handler:GetAutoSwitch(info) end,
-}
-
 -- Handler methods
 
 function ace3HandlerPrototype:GetAutoSwitch(info)
-	local db = ace3Registry[ace3OptionHandlers[info.handler]]
-	return db.char.autoSwitch
+	return self.db.char.autoSwitch
 end
 
 function ace3HandlerPrototype:SetAutoSwitch(info, value)
-	local db = ace3Registry[ace3OptionHandlers[info.handler]]
-	db.char.autoSwitch = value
+	self.db.char.autoSwitch = value
+	UpdateAceDB3(self.target, self.db)
 end
 
 function ace3HandlerPrototype:GetAlternateProfile(info)
-	local db = ace3Registry[ace3OptionHandlers[info.handler]]
-	return db.char.alternateProfile
+	return self.db.char.alternateProfile
 end
 
 function ace3HandlerPrototype:SetAlternateProfile(info, value)
-	local db = ace3Registry[ace3OptionHandlers[info.handler]]
-	db.char.alternateProfile = value
+	self.db.char.alternateProfile = value
 end
 
 function ace3HandlerPrototype:HasOnlyOneTalentGroup()
 	return GetNumTalentGroups() == 1
 end
 
--- Embed our options into an Ace3 option table
-local function EnhanceAce3OptionTable(optionTable, target)
-	ace3OptionTables[optionTable] = true
-	for k,v in pairs(ace3OptionTemplate) do
-		optionTable[k] = v
-	end
+function ace3HandlerPrototype:ListProfiles(info)
+	return self.optionTable.handler:ListProfiles(info)
 end
 
--- Embed our methods into an existing AceDBOptions-3.0 handler 
-local function EnhanceAce3OptionHandler(handler, target)
-	ace3OptionHandlers[handler] = target
+local function EnhanceAceDBOptions3(optionTable, handler)
+	-- Embed our handler methods
 	for k,v in pairs(ace3HandlerPrototype) do
 		handler[k] = v
 	end
+	
+	-- Create the option table if need be
+	if not optionTable.plugins then
+		optionTable.plugins = {}
+	end
+	if not optionTable.plugins[MAJOR] then
+		optionTable.plugins[MAJOR] = {}
+	end
+
+	-- Add our options
+	local options = optionTable.plugins[MAJOR]
+	
+	options.doppelgangerDesc = {
+		name = L_DOPPELGANGER_DESC,
+		type = 'description',
+		handler = handler,
+		order = 40.1,
+		hidden = 'HasOnlyOneTalentGroup',
+	}
+
+	options.autoSwitch = {
+		name = L_AUTOSWITCH,
+		desc = L_AUTOSWITCH_DESC,
+		type = 'toggle',
+		handler = handler,
+		order = 40.2,
+		get = 'GetAutoSwitch',
+		set = 'SetAutoSwitch',
+		hidden = 'HasOnlyOneTalentGroup',
+	}
+
+	options.alternateProfile = {
+		name = L_ALTERNATE_PROFILE,
+		desc = L_ALTERNATE_PROFILE_DESC,
+		type = 'select',
+		handler = handler,
+		order = 40.3,
+		get = "GetAlternateProfile",
+		set = "SetAlternateProfile",
+		values = "ListProfiles",
+		arg = "common",
+		hidden = 'HasOnlyOneTalentGroup',
+		disabled = function(info) return not info.handler:GetAutoSwitch(info) end,
+	}
 end
 
 function lib:EnhanceAceDBOptions3(optionTable, target)
@@ -216,22 +211,19 @@ function lib:EnhanceAceDBOptions3(optionTable, target)
 	elseif not ace3Registry[target] then
 		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): EnhanceAceDB3(target) should be called before EnhanceAceDBOptions3(optionTable, target).", 2)
 	end
-	if not optionTable.plugins then
-		optionTable.plugins = {}
+	if not ace3OptionRegistry[optionTable] then
+		ace3OptionRegistry[optionTable] = {
+			optionTable = optionTable,
+			target = target,
+			db = ace3Registry[target],
+		}
 	end
-	if not optionTable.plugins[MAJOR] then
-		optionTable.plugins[MAJOR] = {}
-	end
-	EnhanceAce3OptionHandler(optionTable.handler, target)
-	EnhanceAce3OptionTable(optionTable.plugins[MAJOR])
+	EnhanceAceDBOptions3(optionTable, ace3OptionRegistry[optionTable])
 end
 
 -- Upgrade existing handlers and option tables
-for handler, target in pairs(ace3OptionHandlers) do
-	EnhanceAce3OptionHandler(handler, target)
-end
-for optionTable in pairs(ace3OptionTables) do
-	EnhanceAce3OptionTable(optionTable)
+for optionTable, handler in pairs(ace3OptionRegistry) do
+	EnhanceAceDBOptions3(optionTable, handler)
 end
 
 --------------------------------------------------------------------------------
