@@ -37,18 +37,27 @@ local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
 lib.talentGroup = lib.talentGroup or GetActiveTalentGroup()
-lib.aceDB2Registry = lib.aceDB2Registry or {}
+lib.eventFrame = lib.eventFrame or CreateFrame("Frame")
+
 lib.aceDB3Registry = lib.aceDB3Registry or {}
+lib.ace3Options = lib.ace3Options or {}
+lib.ace3OptionHandlers = lib.ace3OptionHandlers or {}
+lib.ace3HandlerPrototype = lib.ace3HandlerPrototype or {}
+
+lib.aceDB2Registry = lib.aceDB2Registry or {}
+
+local eventFrame = lib.eventFrame
+
+local aceDB3Registry = lib.aceDB3Registry
+local ace3Options = lib.ace3Options
+local ace3OptionHandlers = lib.ace3OptionHandlers
+local ace3HandlerPrototype = lib.ace3HandlerPrototype
 
 local aceDB2Registry = lib.aceDB2Registry
-local aceDB3Registry = lib.aceDB3Registry
 
 local AceDB2 = AceLibrary and AceLibrary:HasInstance('AceDB-2.0') and AceLibrary:GetInstance('AceDB-2.0')
 local AceDB3 = LibStub('AceDB-3.0', true)
 local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
-
-lib.eventFrame = lib.eventFrame or CreateFrame("Frame")
-local eventFrame = lib.eventFrame
 
 --------------------------------------------------------------------------------
 -- AceDB-3.0 support
@@ -93,91 +102,65 @@ end
 -- AceDBOptions-3.0 support
 --------------------------------------------------------------------------------
 
-lib.ace3OptionTables = lib.ace3OptionTables or {}
-local ace3OptionTables = lib.ace3OptionTables
-
-local ace3Options = {
-	doppelgangerDesc = {
-		name = 'You can select a profile to switch to when you activate your alternate talents',
-		type = 'description',
-		order = 40.1,
-		hidden = 'HasOnlyOneTalentGroup',
-	},
-	autoSwitch = {
-		name = 'Automatically switch',
-		desc = 'Check this box to automatically swich to your alternate profile on talent switch.',
-		type = 'toggle',
-		order = 40.2,
-		get = 'GetAutoSwitch',
-		set = 'SetAutoSwitch',
-		hidden = 'HasOnlyOneTalentGroup',
-	},
-	alternateProfile = {
-		name = 'Alternate profile',
-		desc = 'Select the profile to activate',
-		type = 'select',
-		order = 40.3,
-		get = "GetAlternateProfile",
-		set = "SetAlternateProfile",
-		values = "ListProfiles",
-		arg = "common",
-		hidden = 'HasOnlyOneTalentGroup',
-		disabled = function(info) return not info.handler:GetAutoSwitch(info) end,
-	},
+ace3Options.doppelgangerDesc = {
+	name = 'You can select a profile to switch to when you activate your alternate talents',
+	type = 'description',
+	order = 40.1,
+	hidden = 'HasOnlyOneTalentGroup',
 }
 
-local function GetAce3OptionTable(target)
-	local optionTable = ace3OptionTables[target] or {}
-	for name, option in pairs(ace3Options) do
-		optionTable[name] = option
-	end
-	return optionTable
-end
+ace3Options.autoSwitch = {
+	name = 'Automatically switch',
+	desc = 'Check this box to automatically swich to your alternate profile on talent switch.',
+	type = 'toggle',
+	order = 40.2,
+	get = 'GetAutoSwitch',
+	set = 'SetAutoSwitch',
+	hidden = 'HasOnlyOneTalentGroup',
+}
 
-for target, optionTable in pairs(ace3OptionTables) do
-	for name, option in pairs(ace3Options) do
-		optionTable[name] = option
-	end
-end
+ace3Options.alternateProfile = {
+	name = 'Alternate profile',
+	desc = 'Select the profile to activate',
+	type = 'select',
+	order = 40.3,
+	get = "GetAlternateProfile",
+	set = "SetAlternateProfile",
+	values = "ListProfiles",
+	arg = "common",
+	hidden = 'HasOnlyOneTalentGroup',
+	disabled = function(info) return not info.handler:GetAutoSwitch(info) end,
+}
 
-local ace3handlerPrototype = {}
-
-lib.ace3OptionHandlers = lib.ace3OptionHandlers or {}
-local ace3OptionHandlers = lib.ace3OptionHandlers
-
-function ace3handlerPrototype:GetAutoSwitch(info)
+function ace3HandlerPrototype:GetAutoSwitch(info)
 	local db = aceDB3Registry[ace3OptionHandlers[info.handler]]
 	return db.char.autoSwitch
 end
 
-function ace3handlerPrototype:SetAutoSwitch(info, value)
+function ace3HandlerPrototype:SetAutoSwitch(info, value)
 	local db = aceDB3Registry[ace3OptionHandlers[info.handler]]
 	db.char.autoSwitch = value
 end
 
-function ace3handlerPrototype:GetAlternateProfile(info)
+function ace3HandlerPrototype:GetAlternateProfile(info)
 	local db = aceDB3Registry[ace3OptionHandlers[info.handler]]
 	return db.char.alternateProfile
 end
 
-function ace3handlerPrototype:SetAlternateProfile(info, value)
+function ace3HandlerPrototype:SetAlternateProfile(info, value)
 	local db = aceDB3Registry[ace3OptionHandlers[info.handler]]
 	db.char.alternateProfile = value
 end
 
-function ace3handlerPrototype:HasOnlyOneTalentGroup()
+function ace3HandlerPrototype:HasOnlyOneTalentGroup()
 	return GetNumTalentGroups() == 1
 end
 
 local function EnhanceAce3OptionHandler(handler, target)
 	ace3OptionHandlers[handler] = target
-	for k,v in pairs(ace3handlerPrototype) do
+	for k,v in pairs(ace3HandlerPrototype) do
 		handler[k] = v
 	end
-end
-
-for handler, target in pairs(ace3OptionHandlers) do
-	EnhanceAce3OptionHandler(handler, target)
 end
 
 function lib:EnhanceAceDBOptions3(options)
@@ -190,13 +173,35 @@ function lib:EnhanceAceDBOptions3(options)
 	if not optionTable.plugins then
 		optionTable.plugins = {}
 	end
-	optionTable.plugins[MAJOR] = GetAce3OptionTable(target)
+	optionTable.plugins[MAJOR] = ace3Options
 	EnhanceAce3OptionHandler(optionTable.handler, target)
+end
+
+for handler, target in pairs(ace3OptionHandlers) do
+	EnhanceAce3OptionHandler(handler, target)
 end
 
 --------------------------------------------------------------------------------
 -- AceDB-2.0 support
 --------------------------------------------------------------------------------
+
+local function UpdateAceDB2(target, db)
+	if db.char.autoSwitch and db.char.talentGroup ~= lib.talentGroup then
+		local _, currentProfile = target:GetCurrentProfile()
+		local newProfile = db.char.alternateProfile
+		db.char.talentGroup = lib.talentGroup
+		if newProfile ~= currentProfile then
+			target:SetProfile(newProfile)
+			db.char.alternateProfile = currentProfile
+		end
+	end
+end
+
+local function AceDB2TalentSwitch()
+	for target, db in pairs(aceDB2Registry) do
+		UpdateAceDB2(target, db)
+	end
+end
 
 function lib:EnhanceAceDB2(target)
 	AceDB2 = AceDB2 or (AceLibrary and AceLibrary:HasInstance('AceDB-2.0') and AceLibrary('AceDB-2.0'))
@@ -212,25 +217,7 @@ function lib:EnhanceAceDB2(target)
 		db.char.autoSwitch = false		
 	end
 	aceDB2Registry[target] = db
-	lib:UpdateAceDB2(target, db)
-end
-
-function lib:UpdateAceDB2(target, db)
-	if db.char.autoSwitch and db.char.talentGroup ~= lib.talentGroup then
-		local _, currentProfile = target:GetCurrentProfile()
-		local newProfile = db.char.alternateProfile
-		db.char.talentGroup = lib.talentGroup
-		if newProfile ~= currentProfile then
-			target:SetProfile(newProfile)
-			db.char.alternateProfile = currentProfile
-		end
-	end
-end
-
-function lib:AceDB2TalentSwitch()
-	for target, db in pairs(aceDB2Registry) do
-		lib:UpdateAceDB2(target, db)
-	end
+	UpdateAceDB2(target, db)
 end
 
 --------------------------------------------------------------------------------
@@ -243,8 +230,8 @@ function eventFrame:PLAYER_TALENT_UPDATE()
 	local newTalentGroup = GetActiveTalentGroup()
 	if lib.talentGroup ~= newTalentGroup then
 		lib.talentGroup = newTalentGroup
-		lib:AceDB3TalentSwitch()
-		lib:AceDB2TalentSwitch()
+		AceDB3TalentSwitch()
+		AceDB2TalentSwitch()
 	end
 end
 
