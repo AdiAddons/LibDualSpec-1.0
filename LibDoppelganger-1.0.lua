@@ -120,6 +120,10 @@ end
 -- AceDBOptions-3.0 support
 --------------------------------------------------------------------------------
 
+local function HasOnlyOneTalentGroup()
+	return GetNumTalentGroups() == 1
+end
+
 -- Handler methods
 
 function ace3HandlerPrototype:GetAutoSwitch(info)
@@ -137,10 +141,6 @@ end
 
 function ace3HandlerPrototype:SetAlternateProfile(info, value)
 	self.db.char.alternateProfile = value
-end
-
-function ace3HandlerPrototype:HasOnlyOneTalentGroup()
-	return GetNumTalentGroups() == 1
 end
 
 function ace3HandlerPrototype:ListProfiles(info)
@@ -169,7 +169,7 @@ local function EnhanceAceDBOptions3(optionTable, handler)
 		type = 'description',
 		handler = handler,
 		order = 40.1,
-		hidden = 'HasOnlyOneTalentGroup',
+		hidden = HasOnlyOneTalentGroup,
 	}
 
 	options.autoSwitch = {
@@ -180,7 +180,7 @@ local function EnhanceAceDBOptions3(optionTable, handler)
 		order = 40.2,
 		get = 'GetAutoSwitch',
 		set = 'SetAutoSwitch',
-		hidden = 'HasOnlyOneTalentGroup',
+		hidden = HasOnlyOneTalentGroup,
 	}
 
 	options.alternateProfile = {
@@ -193,7 +193,7 @@ local function EnhanceAceDBOptions3(optionTable, handler)
 		set = "SetAlternateProfile",
 		values = "ListProfiles",
 		arg = "common",
-		hidden = 'HasOnlyOneTalentGroup',
+		hidden = HasOnlyOneTalentGroup,
 		disabled = function(info) return not info.handler:GetAutoSwitch(info) end,
 	}
 end
@@ -204,7 +204,7 @@ function lib:EnhanceAceDBOptions3(optionTable, target)
 		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable should be a table.", 2)
 	elseif type(target) ~= "table" then
 		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): target should be a table.", 2)
-	elseif not (AceDBOptions3 and AceDBOptions3.optionTables[optionTable]) then
+	elseif not (AceDBOptions3 and AceDBOptions3.optionTables[target]) then
 		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable is not an AceDBOptions-3.0 table.", 2)
 	elseif optionTable.handler.db ~= target then
 		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable must be the option table of target.", 2)
@@ -248,8 +248,8 @@ function lib:EnhanceAceDB2(target)
 		error("Usage: LibDoppelganger:EnhanceAceDB2(target): target be a table.", 2)
 	elseif not AceDB2 or not AceDB2.registry[target] then
 		error("Usage: LibDoppelganger:EnhanceAceDB2(target): target should embed AceDB-2.0.", 2)
-	elseif target.db.db then
-		error("Usage: LibDoppelganger:EnhanceAceDB2(target): cannot enhance a namespace.", 2)
+	--elseif target.db and target.db.db then
+	--	error("Usage: LibDoppelganger:EnhanceAceDB2(target): cannot enhance a namespace.", 2)
 	end
 	local db = target:AcquireDBNamespace(MAJOR)
 	if not db.char.talentGroup then
@@ -300,24 +300,30 @@ local function EnhanceAceDBOptions2(optionTable, handler)
 	
 	-- Add our options
 	options.autoSwitch = {
-		name = L_AUTOSWITCH,
+		cmdName = L_AUTOSWITCH,
+		guiName = L_AUTOSWITCH,
 		desc = L_AUTOSWITCH_DESC,
+		usage = 'L_AUTOSWITCH_USAGE',
 		order = 1.1,
 		handler = handler,
 		type = 'text',
 		get = "GetAutoSwitch",
 		set = "SetAutoSwitch",
+		--hidden = HasOnlyOneTalentGroup,
 	}
 	
 	options.alternateProfile = {
-		name = L_ALTERNATE_PROFILE,
+		cmdName = L_ALTERNATE_PROFILE,
+		guiName = L_ALTERNATE_PROFILE,
 		desc = L_ALTERNATE_PROFILE_DESC,
+		usage = 'L_ALTERNATE_PROFILE_USAGE',
 		order = 1.1,
 		type = 'text',
 		handler = handler,
 		get = "GetAlternateProfile",
 		set = "SetAlternateProfile",
-		validate = handler.target['acedb-profile-list']
+		validate = handler.target['acedb-profile-list'],
+		-- hidden = HasOnlyOneTalentGroup,
 	}
 end
 
