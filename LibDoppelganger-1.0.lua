@@ -4,18 +4,18 @@ Copyright (C) 2009 Adirelle
 
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
+Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice, 
+    * Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, 
-      this list of conditions and the following disclaimer in the documentation 
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
       and/or other materials provided with the distribution.
-    * Redistribution of a stand alone version is strictly prohibited without 
-      prior written authorization from the LibDoppelganger project manager. 
-    * Neither the name of the LibDoppelganger authors nor the names of its contributors 
-      may be used to endorse or promote products derived from this software without 
+    * Redistribution of a stand alone version is strictly prohibited without
+      prior written authorization from the LibDoppelganger project manager.
+    * Neither the name of the LibDoppelganger authors nor the names of its contributors
+      may be used to endorse or promote products derived from this software without
       specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -43,24 +43,19 @@ if not lib then return end
 lib.talentGroup = lib.talentGroup or GetActiveTalentGroup()
 lib.eventFrame = lib.eventFrame or CreateFrame("Frame")
 
-lib.ace3Registry = lib.ace3Registry or {}
-lib.ace3OptionRegistry = lib.ace3OptionRegistry or {}
-
-lib.ace2Registry = lib.ace2Registry or {}
-lib.ace2OptionRegistry = lib.ace2OptionRegistry or {}
+lib.registry = lib.registry or {}
+lib.options = lib.options or {}
+lib.mixin = lib.mixin or {}
 
 --------------------------------------------------------------------------------
 -- Locals
 --------------------------------------------------------------------------------
 
-local ace3Registry = lib.ace3Registry
-local ace3OptionRegistry = lib.ace3OptionRegistry
-
-local ace2Registry = lib.ace2Registry
-local ace2OptionRegistry = lib.ace2OptionRegistry
+local registry = lib.registry
+local options = lib.options
+local mixin = lib.mixin
 
 -- "Externals"
-local AceDB2 = AceLibrary and AceLibrary:HasInstance('AceDB-2.0') and AceLibrary:GetInstance('AceDB-2.0')
 local AceDB3 = LibStub('AceDB-3.0', true)
 local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
 
@@ -68,40 +63,72 @@ local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
 -- Localization
 --------------------------------------------------------------------------------
 
-local L_DOPPELGANGER_DESC, L_AUTOSWITCH, L_AUTOSWITCH_DESC, L_ALTERNATE_PROFILE
-local L_ALTERNATE_PROFILE_DESC
+local L_DUALSPEC_DESC, L_ENABLED, L_ENABLED_DESC, L_DUAL_PROFILE
+local L_DUAL_PROFILE_DESC
 
-L_DOPPELGANGER_DESC = 'You can select a profile to switch to when you activate your alternate talents'
-L_AUTOSWITCH = 'Automatically switch'
-L_AUTOSWITCH_DESC = 'Check this box to automatically swich to your alternate profile on talent switch.'
-L_ALTERNATE_PROFILE = 'Alternate profile'
-L_ALTERNATE_PROFILE_DESC = 'Select the profile to activate'
+L_DUALSPEC_DESC = 'Here you can select a profile for your character alternate spec.'
+L_ENABLED = 'Enable profile switch'
+L_ENABLED_DESC = 'Check this box to automatically swicth to the selected profile on alternate spec activation.'
+L_DUAL_PROFILE = 'Dual profile'
+L_DUAL_PROFILE_DESC = 'Select the profile to switch to when the alternate spec is activated.'
 
 --------------------------------------------------------------------------------
--- Random helper(s)
+-- Mixin
 --------------------------------------------------------------------------------
 
-local function HasOnlyOneTalentGroup()
-	return GetNumTalentGroups() == 1
+function mixin:IsDualSpecEnabled()
+	return registry[self].db.char.enabled
+end
+
+function mixin:SetDualSpecEnabled(value)
+	local db = registry[self].db
+	if value and not db.char.talentGroup then
+		db.char.talentGroup = lib.talentGroup
+		db.char.profile = self:GetCurrentProfile()
+		db.char.enabled = true	
+	else
+		db.char.enabled = value
+		self:CheckDualSpecState()
+	end
+end
+
+function mixin:GetDualSpecProfile()
+	return registry[self].db.char.profile or self:GetCurrentProfile()
+end
+
+function mixin:SetDualSpecProfile(value)
+	registry[self].db.char.profile = value
+end
+
+function mixin:CheckDualSpecState()
+	local db = registry[self].db
+	if db.char.enabled and db.char.talentGroup ~= lib.talentGroup then
+		local currentProfile = self:GetCurrentProfile()
+		local newProfile = db.char.profile
+		db.char.talentGroup = lib.talentGroup
+		if newProfile ~= currentProfile then
+			self:SetProfile(newProfile)
+			db.char.profile = currentProfile
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
 -- AceDB-3.0 support
 --------------------------------------------------------------------------------
 
-local function UpdateAceDB3(target, db)
-	if db.char.autoSwitch and db.char.talentGroup ~= lib.talentGroup then
-		local currentProfile = target:GetCurrentProfile()
-		local newProfile = db.char.alternateProfile
-		db.char.talentGroup = lib.talentGroup
-		if newProfile ~= currentProfile then
-			target:SetProfile(newProfile)
-			db.char.alternateProfile = currentProfile
-		end
+local function EmbedMixin(target)
+	for k,v in pairs(mixin) do
+		rawset(target, k, v)
 	end
 end
 
-function lib:EnhanceAceDB3(target)
+-- Upgrade existing mixins
+for target in pairs(registry) do
+	EmbedMixin(target)
+end
+
+function lib:EnhanceDatabase(target, name)
 	AceDB3 = AceDB3 or LibStub('AceDB-3.0', true)
 	if type(target) ~= "table" then
 		error("Usage: LibDoppelganger:EnhanceAceDB3(target): target should be a table.", 2)
@@ -109,67 +136,54 @@ function lib:EnhanceAceDB3(target)
 		error("Usage: LibDoppelganger:EnhanceAceDB3(target): target should be an AceDB-3.0 database.", 2)
 	elseif target.parent then
 		error("Usage: LibDoppelganger:EnhanceAceDB3(target): cannot enhance a namespace.", 2)
+	elseif registry[target] then
+		return
 	end
 	local db = target:GetNamespace(MAJOR, true) or target:RegisterNamespace(MAJOR)
-	if not db.char.talentGroup then
-		db.char.talentGroup = lib.talentGroup
-		db.char.alternateProfile = target:GetCurrentProfile()
-		db.char.autoSwitch = false	
-	end
-	ace3Registry[target] = db
-	UpdateAceDB3(target, db)
+	registry[target] = { name = name, db = db	}
+	EmbedMixin(target)
+	target:CheckDualSpecState()
 end
 
 --------------------------------------------------------------------------------
 -- AceDBOptions-3.0 support
 --------------------------------------------------------------------------------
 
-local function EnhanceAceDBOptions3(optionTable, target)
-
-	-- Create the option table if need be
-	if not optionTable.plugins then
-		optionTable.plugins = {}
-	end
-	if not optionTable.plugins[MAJOR] then
-		optionTable.plugins[MAJOR] = {}
-	end
-
-	-- Add our options
-	local db = ace3Registry[target]
-	local options = optionTable.plugins[MAJOR]
-	
-	options.doppelgangerDesc = {
-		name = L_DOPPELGANGER_DESC,
-		type = 'description',
-		order = 40.1,
-		hidden = HasOnlyOneTalentGroup,
-	}
-
-	options.autoSwitch = {
-		name = L_AUTOSWITCH,
-		desc = L_AUTOSWITCH_DESC,
-		type = 'toggle',
-		order = 40.2,
-		get = function() return db.char.autoSwitch end,
-		set = function(_,v) db.char.autoSwitch = v UpdateAceDB3(target, db) end,
-		hidden = HasOnlyOneTalentGroup,
-	}
-
-	options.alternateProfile = {
-		name = L_ALTERNATE_PROFILE,
-		desc = L_ALTERNATE_PROFILE_DESC,
-		type = 'select',
-		order = 40.3,
-		get = function() return db.char.alternateProfile end,
-		set = function(_,v) db.char.alternateProfile =v end,
-		values = "ListProfiles",
-		arg = "common",
-		hidden = HasOnlyOneTalentGroup,
-		disabled = function() return not db.char.autoSwitch end,
-	}
+local function NoDualSpec()
+	return GetNumTalentGroups() == 1
 end
 
-function lib:EnhanceAceDBOptions3(optionTable, target)
+options.dualSpecDesc = {
+	name = L_DUALSPEC_DESC,
+	type = 'description',
+	order = 40.1,
+	hidden = NoDualSpec,
+}
+
+options.enabled = {
+	name = L_ENABLED,
+	desc = L_ENABLED_DESC,
+	type = 'toggle',
+	order = 40.2,
+	get = function(info) return info.handler.db:IsDualSpecEnabled() end,
+	set = function(info, value) info.handler.db:SetDualSpecEnabled(value) end,
+	hidden = NoDualSpec,
+}
+
+options.alternateProfile = {
+	name = L_DUAL_PROFILE,
+	desc = L_DUAL_PROFILE_DESC,
+	type = 'select',
+	order = 40.3,
+	get = function(info) return info.handler.db:GetDualSpecProfile() end,
+	set = function(info, value) info.handler.db:SetDualSpecProfile(value) end,
+	values = "ListProfiles",
+	arg = "common",
+	hidden = NoDualSpec,
+	disabled = function(info) return not info.handler.db:IsDualSpecEnabled() end,
+}
+
+function lib:EnhanceOptions(optionTable, target)
 	AceDBOptions3 = AceDBOptions3 or LibStub('AceDBOptions-3.0', true)
 	if type(optionTable) ~= "table" then
 		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable should be a table.", 2)
@@ -179,123 +193,31 @@ function lib:EnhanceAceDBOptions3(optionTable, target)
 		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable is not an AceDBOptions-3.0 table.", 2)
 	elseif optionTable.handler.db ~= target then
 		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable must be the option table of target.", 2)
-	elseif not ace3Registry[target] then
+	elseif not registry[target] then
 		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): EnhanceAceDB3(target) should be called before EnhanceAceDBOptions3(optionTable, target).", 2)
+	elseif optionTable.plugins and optionTable.plugins[MAJOR] then
+		return
 	end
-	ace3OptionRegistry[optionTable] = target
-	EnhanceAceDBOptions3(optionTable, target)
-end
-
--- Upgrade existing handlers and option tables
-for optionTable, target in pairs(ace3OptionRegistry) do
-	EnhanceAceDBOptions3(optionTable, target)
+	if not optionTable.plugins then
+		optionTable.plugins = {}
+	end
+	optionTable.plugins[MAJOR] = options
 end
 
 --------------------------------------------------------------------------------
--- AceDB-2.0 support
+-- Inspection
 --------------------------------------------------------------------------------
 
-local function UpdateAceDB2(target, db)
-	if db.char.autoSwitch and db.char.talentGroup ~= lib.talentGroup then
-		local currentProfile = select(2, target:GetProfile())
-		local newProfile = db.char.alternateProfile
-		db.char.talentGroup = lib.talentGroup
-		if newProfile ~= currentProfile then
-			target:SetProfile(newProfile)
-			db.char.alternateProfile = currentProfile
-		end
+local function iterator(registry, key)
+	local data
+	key, data = next(registry, key)
+	if key then
+		return key, data.name
 	end
 end
 
-function lib:EnhanceAceDB2(target)
-	AceDB2 = AceDB2 or (AceLibrary and AceLibrary:HasInstance('AceDB-2.0') and AceLibrary('AceDB-2.0'))
-	if type(target) ~= "table" then
-		error("Usage: LibDoppelganger:EnhanceAceDB2(target): target be a table.", 2)
-	elseif not AceDB2 or not AceDB2.registry[target] then
-		error("Usage: LibDoppelganger:EnhanceAceDB2(target): target should embed AceDB-2.0.", 2)
-	end
-	local db = target:AcquireDBNamespace(MAJOR)
-	if not db.char.talentGroup then
-		db.char.talentGroup = lib.talentGroup
-		db.char.alternateProfile = select(2, target:GetProfile())
-		db.char.autoSwitch = false		
-	end 
-	ace2Registry[target] = db
-	UpdateAceDB2(target, db)
-end
-
---------------------------------------------------------------------------------
--- AceDB-2.0 option support
---------------------------------------------------------------------------------
-
-local function EnhanceAceDBOptions2(target, aceOptions)
-
-	-- Update the option table
-	local args = aceOptions.profile.args
-
-	-- Enforce ordering of existing options
-	args.choose.order = 1
-	args.copy.order = 2
-	args.other.order = 3
-	args.delete.orger = 4
-	args.reset.order = 5
-	 
-	-- Add our options
-	local db = ace2Registry[target]
-	
-	args.autoSwitch = {
-		cmdName = L_AUTOSWITCH,
-		guiName = L_AUTOSWITCH,
-		desc = L_AUTOSWITCH_DESC,
-		usage = 'L_AUTOSWITCH_USAGE',
-		order = 1.1,
-		type = 'toggle',
-		get = function() return db.char.autoSwitch end,
-		set = function(value) db.char.autoSwitch = value UpdateAceDB2(target, db) end,
-		hidden = HasOnlyOneTalentGroup,
-	}
-	
-	args.alternateProfile = {
-		cmdName = L_ALTERNATE_PROFILE,
-		guiName = L_ALTERNATE_PROFILE,
-		desc = L_ALTERNATE_PROFILE_DESC,
-		usage = 'L_ALTERNATE_PROFILE_USAGE',
-		order = 1.2,
-		type = 'text',
-		get = function() return db.char.alternateProfile end,
-		set = function(value) db.char.alternateProfile = value end,
-		validate = target['acedb-profile-list'],
-		hidden = HasOnlyOneTalentGroup,
-	}
-	
-end
-
-function lib:EnhanceAceDBOptions2(optionTable, target)
-	AceDB2 = AceDB2 or (AceLibrary and AceLibrary:HasInstance('AceDB-2.0') and AceLibrary('AceDB-2.0'))
-	if type(optionTable) ~= "table" then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions2(optionTable, target): optionTable should be a table.", 2)
-	elseif type(target) ~= "table" then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions2(optionTable, target): target should be a table.", 2)
-	elseif not AceDB2 or not AceDB2.registry[target] then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions2(optionTable, target): optionTable is not an AceDB-2.0 table.", 2)
-	elseif not ace2Registry[target] then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions2(optionTable, target): EnhanceAceDB2(target) should be called before EnhanceAceDBOptions2(optionTable, target).", 2)
-	end
-	
-	if not ace2OptionRegistry[target] then
-		-- Merge AceDB-2.0 options into option table
-		local aceOptions = AceDB2:GetAceOptionsDataTable(target)
-		for k, v in pairs(aceOptions) do
-			optionTable.args[k] = v
-		end
-		ace2OptionRegistry[target] = aceOptions
-	end
-	EnhanceAceDBOptions2(target, ace2OptionRegistry[target])
-end
-
--- Upgrade existing option tables
-for target, aceOptions in pairs(ace2OptionRegistry) do
-	EnhanceAceDBOptions2(target, aceOptions)
+function lib:IterateDatabases()
+	return iterator, lib.registry
 end
 
 --------------------------------------------------------------------------------
@@ -307,11 +229,8 @@ lib.eventFrame:SetScript('OnEvent', function()
 	local newTalentGroup = GetActiveTalentGroup()
 	if lib.talentGroup ~= newTalentGroup then
 		lib.talentGroup = newTalentGroup
-		for target, db in pairs(ace3Registry) do
-			UpdateAceDB3(target, db)
-		end
-		for target, db in pairs(ace2Registry) do
-			UpdateAceDB2(target, db)
+		for target in pairs(registry) do
+			target:CheckDualSpecState()
 		end
 	end
 end)
