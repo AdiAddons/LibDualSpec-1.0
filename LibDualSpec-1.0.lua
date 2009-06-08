@@ -66,11 +66,24 @@ local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
 local L_DUALSPEC_DESC, L_ENABLED, L_ENABLED_DESC, L_DUAL_PROFILE
 local L_DUAL_PROFILE_DESC
 
-L_DUALSPEC_DESC = 'Here you can select a profile for your character alternate spec.'
-L_ENABLED = 'Enable profile switch'
-L_ENABLED_DESC = 'Check this box to automatically swicth to the selected profile on alternate spec activation.'
+L_DUALSPEC_DESC = "When enabled, this feature allow you to select a different "..
+		"profil for each talent spec. The dual profile will be swapped with the "..
+		"current profile each time you switch from a talent spec to the other."
+L_ENABLED = 'Enable dual profile'
+L_ENABLED_DESC = 'Check this box to automatically swap profiles on talent switch.'
 L_DUAL_PROFILE = 'Dual profile'
-L_DUAL_PROFILE_DESC = 'Select the profile to switch to when the alternate spec is activated.'
+L_DUAL_PROFILE_DESC = 'Select the profile to swap with on talent switch.'
+
+if GetLocale() == "frFR" then
+	L_DUALSPEC_DESC = "Lorsqu'elle est activée, cette fonctionnalité vous permet "..
+		"de choisir un profil différent pour chaque spécialisation de talents. "..
+		"Le second profil sera échangé avec le profil courant chaque fois que vous "..
+		"passerez d'une spécialisation à l'autre."
+	L_ENABLED = 'Activez le second profil'
+	L_ENABLED_DESC = "Cochez cette case pour échanger automatiquement les profils lors d'un changement de spécialisation."
+	L_DUAL_PROFILE = 'Second profil'
+	L_DUAL_PROFILE_DESC = 'Sélectionnez le profil à échanger avec le profil courant lors du changement de spécialisation.'
+end
 
 --------------------------------------------------------------------------------
 -- Mixin
@@ -131,11 +144,13 @@ end
 function lib:EnhanceDatabase(target, name)
 	AceDB3 = AceDB3 or LibStub('AceDB-3.0', true)
 	if type(target) ~= "table" then
-		error("Usage: LibDualSpec:EnhanceAceDB3(target): target should be a table.", 2)
+		error("Usage: LibDualSpec:EnhanceDatabase(target, name): target should be a table.", 2)
+	elseif type(name) ~= "string" then
+		error("Usage: LibDualSpec:EnhanceDatabase(target, name): name should be a string.", 2)
 	elseif not AceDB3 or not AceDB3.db_registry[target] then
-		error("Usage: LibDualSpec:EnhanceAceDB3(target): target should be an AceDB-3.0 database.", 2)
+		error("Usage: LibDualSpec:EnhanceDatabase(target, name): target should be an AceDB-3.0 database.", 2)
 	elseif target.parent then
-		error("Usage: LibDualSpec:EnhanceAceDB3(target): cannot enhance a namespace.", 2)
+		error("Usage: LibDualSpec:EnhanceDatabase(target, name): cannot enhance a namespace.", 2)
 	elseif registry[target] then
 		return
 	end
@@ -170,7 +185,7 @@ options.enabled = {
 	hidden = NoDualSpec,
 }
 
-options.alternateProfile = {
+options.dualProfile = {
 	name = L_DUAL_PROFILE,
 	desc = L_DUAL_PROFILE_DESC,
 	type = 'select',
@@ -186,15 +201,15 @@ options.alternateProfile = {
 function lib:EnhanceOptions(optionTable, target)
 	AceDBOptions3 = AceDBOptions3 or LibStub('AceDBOptions-3.0', true)
 	if type(optionTable) ~= "table" then
-		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): optionTable should be a table.", 2)
+		error("Usage: LibDualSpec:EnhanceOptions(optionTable, target): optionTable should be a table.", 2)
 	elseif type(target) ~= "table" then
-		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): target should be a table.", 2)
+		error("Usage: LibDualSpec:EnhanceOptions(optionTable, target): target should be a table.", 2)
 	elseif not (AceDBOptions3 and AceDBOptions3.optionTables[target]) then
-		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): optionTable is not an AceDBOptions-3.0 table.", 2)
+		error("Usage: LibDualSpec:EnhanceOptions(optionTable, target): optionTable is not an AceDBOptions-3.0 table.", 2)
 	elseif optionTable.handler.db ~= target then
-		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): optionTable must be the option table of target.", 2)
+		error("Usage: LibDualSpec:EnhanceOptions(optionTable, target): optionTable must be the option table of target.", 2)
 	elseif not registry[target] then
-		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): EnhanceAceDB3(target) should be called before EnhanceAceDBOptions3(optionTable, target).", 2)
+		error("Usage: LibDualSpec:EnhanceOptions(optionTable, target): EnhanceDatabase should be called before EnhanceOptions(optionTable, target).", 2)
 	elseif optionTable.plugins and optionTable.plugins[MAJOR] then
 		return
 	end
