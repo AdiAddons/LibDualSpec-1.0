@@ -1,5 +1,5 @@
 --[[
-LibDoppelganger-1.0 - Adds dual spec support to AceDB databases
+LibDualSpec-1.0 - Adds dual spec support to individual AceDB-3.0 databases
 Copyright (C) 2009 Adirelle
 
 All rights reserved.
@@ -13,8 +13,8 @@ modification, are permitted provided that the following conditions are met:
       this list of conditions and the following disclaimer in the documentation
       and/or other materials provided with the distribution.
     * Redistribution of a stand alone version is strictly prohibited without
-      prior written authorization from the LibDoppelganger project manager.
-    * Neither the name of the LibDoppelganger authors nor the names of its contributors
+      prior written authorization from the LibDualSpec project manager.
+    * Neither the name of the LibDualSpec authors nor the names of its contributors
       may be used to endorse or promote products derived from this software without
       specific prior written permission.
 
@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDoppelganger-1.0", 1
+local MAJOR, MINOR = "LibDualSpec-1.0", 1
 assert(LibStub, MAJOR.." requires LibStub")
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -131,11 +131,11 @@ end
 function lib:EnhanceDatabase(target, name)
 	AceDB3 = AceDB3 or LibStub('AceDB-3.0', true)
 	if type(target) ~= "table" then
-		error("Usage: LibDoppelganger:EnhanceAceDB3(target): target should be a table.", 2)
+		error("Usage: LibDualSpec:EnhanceAceDB3(target): target should be a table.", 2)
 	elseif not AceDB3 or not AceDB3.db_registry[target] then
-		error("Usage: LibDoppelganger:EnhanceAceDB3(target): target should be an AceDB-3.0 database.", 2)
+		error("Usage: LibDualSpec:EnhanceAceDB3(target): target should be an AceDB-3.0 database.", 2)
 	elseif target.parent then
-		error("Usage: LibDoppelganger:EnhanceAceDB3(target): cannot enhance a namespace.", 2)
+		error("Usage: LibDualSpec:EnhanceAceDB3(target): cannot enhance a namespace.", 2)
 	elseif registry[target] then
 		return
 	end
@@ -186,15 +186,15 @@ options.alternateProfile = {
 function lib:EnhanceOptions(optionTable, target)
 	AceDBOptions3 = AceDBOptions3 or LibStub('AceDBOptions-3.0', true)
 	if type(optionTable) ~= "table" then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable should be a table.", 2)
+		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): optionTable should be a table.", 2)
 	elseif type(target) ~= "table" then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): target should be a table.", 2)
+		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): target should be a table.", 2)
 	elseif not (AceDBOptions3 and AceDBOptions3.optionTables[target]) then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable is not an AceDBOptions-3.0 table.", 2)
+		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): optionTable is not an AceDBOptions-3.0 table.", 2)
 	elseif optionTable.handler.db ~= target then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): optionTable must be the option table of target.", 2)
+		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): optionTable must be the option table of target.", 2)
 	elseif not registry[target] then
-		error("Usage: LibDoppelganger:EnhanceAceDBOptions3(optionTable, target): EnhanceAceDB3(target) should be called before EnhanceAceDBOptions3(optionTable, target).", 2)
+		error("Usage: LibDualSpec:EnhanceAceDBOptions3(optionTable, target): EnhanceAceDB3(target) should be called before EnhanceAceDBOptions3(optionTable, target).", 2)
 	elseif optionTable.plugins and optionTable.plugins[MAJOR] then
 		return
 	end

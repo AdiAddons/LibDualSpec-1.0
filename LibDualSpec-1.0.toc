@@ -3,9 +3,9 @@
 ## Title: Lib: Doppelganger-1.0
 ## Version: @project-version@
 ## X-Date: @project-date@
-## Notes: A library adding dual spec support to AceDB databases
+## Notes: Adds dual spec support to individual AceDB-3.0 databases
 ## Author: Adirelle
 ## OptionalDeps: LibStub, Ace2, Ace3
 
 LibStub.lua
-LibDoppelganger-1.0.lua
+LibDualSpec-1.0.lua
