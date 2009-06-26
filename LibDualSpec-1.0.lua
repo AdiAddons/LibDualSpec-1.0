@@ -36,9 +36,9 @@ assert(LibStub, MAJOR.." requires LibStub")
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 -- Library data
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 
 lib.talentGroup = lib.talentGroup or GetActiveTalentGroup()
 lib.eventFrame = lib.eventFrame or CreateFrame("Frame")
@@ -47,9 +47,9 @@ lib.registry = lib.registry or {}
 lib.options = lib.options or {}
 lib.mixin = lib.mixin or {}
 
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 -- Locals
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 
 local registry = lib.registry
 local options = lib.options
@@ -59,9 +59,9 @@ local mixin = lib.mixin
 local AceDB3 = LibStub('AceDB-3.0', true)
 local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
 
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 -- Localization
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 
 local L_DUALSPEC_DESC, L_ENABLED, L_ENABLED_DESC, L_DUAL_PROFILE
 local L_DUAL_PROFILE_DESC
@@ -85,34 +85,55 @@ if GetLocale() == "frFR" then
 	L_DUAL_PROFILE_DESC = 'Sélectionnez le profil à échanger avec le profil courant lors du changement de spécialisation.'
 end
 
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 -- Mixin
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 
+--- Get dual spec feature status. 
+-- @return (boolean) true is dual spec feature enabled.
+-- @name enhancedDB:IsDualSpecEnabled
 function mixin:IsDualSpecEnabled()
 	return registry[self].db.char.enabled
 end
 
-function mixin:SetDualSpecEnabled(value)
+--- Enable/disabled dual spec feature.
+-- @param enabled (boolean) true to enable dual spec feature, false to disable it.
+-- @name enhancedDB:SetDualSpecEnabled
+function mixin:SetDualSpecEnabled(enabled)
 	local db = registry[self].db
-	if value and not db.char.talentGroup then
+	if enabled and not db.char.talentGroup then
 		db.char.talentGroup = lib.talentGroup
 		db.char.profile = self:GetCurrentProfile()
 		db.char.enabled = true	
 	else
-		db.char.enabled = value
+		db.char.enabled = enabled
 		self:CheckDualSpecState()
 	end
 end
 
+--- Get the alternate profile name.
+-- Defaults to the current profile.
+-- @return (string) Alternate profile name.
+-- @name enhancedDB:GetDualSpecProfile
 function mixin:GetDualSpecProfile()
 	return registry[self].db.char.profile or self:GetCurrentProfile()
 end
 
-function mixin:SetDualSpecProfile(value)
-	registry[self].db.char.profile = value
+--- Set the alternate profile name.
+-- No validation are done to ensure the profile is valid.
+-- @param profileName (string) the profile name to use. 
+-- @name enhancedDB:SetDualSpecProfile
+function mixin:SetDualSpecProfile(profileName)
+	registry[self].db.char.profile = profileName
 end
 
+--- Check if a profile swap should occur.
+-- Do nothing if the dual spec feature is disabled. In the other
+-- case, if the internally stored talent spec the actual active talent
+-- spec, the database swap to the alternate profile.
+-- There is normally no reason to call this method directly as LibDualSpec
+-- takes care of calling it at appropriate times.
+-- @name enhancedDB:CheckDualSpecState
 function mixin:CheckDualSpecState()
 	local db = registry[self].db
 	if db.char.enabled and db.char.talentGroup ~= lib.talentGroup then
@@ -126,9 +147,9 @@ function mixin:CheckDualSpecState()
 	end
 end
 
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 -- AceDB-3.0 support
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 
 local function EmbedMixin(target)
 	for k,v in pairs(mixin) do
@@ -141,6 +162,11 @@ for target in pairs(registry) do
 	EmbedMixin(target)
 end
 
+--- Embed dual spec feature into an existing AceDB-3.0 database.
+-- LibDualSpec specific methods are added to the instance.
+-- @name LibDualSpec:EnhanceDatabase
+-- @param target (table) the AceDB-3.0 instance.
+-- @param name (string) a user-friendly name of the database (best bet is the addon name).
 function lib:EnhanceDatabase(target, name)
 	AceDB3 = AceDB3 or LibStub('AceDB-3.0', true)
 	if type(target) ~= "table" then
@@ -160,9 +186,9 @@ function lib:EnhanceDatabase(target, name)
 	target:CheckDualSpecState()
 end
 
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 -- AceDBOptions-3.0 support
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 
 local function NoDualSpec()
 	return GetNumTalentGroups() == 1
@@ -198,6 +224,10 @@ options.dualProfile = {
 	disabled = function(info) return not info.handler.db:IsDualSpecEnabled() end,
 }
 
+--- Embed dual spec options into an existing AceDBOptions-3.0 option table.
+-- @name LibDualSpec:EnhanceOptions
+-- @param optionTable (table) The option table returned by AceDBOptions-3.0.
+-- @param target (table) The AceDB-3.0 the options operate on.
 function lib:EnhanceOptions(optionTable, target)
 	AceDBOptions3 = AceDBOptions3 or LibStub('AceDBOptions-3.0', true)
 	if type(optionTable) ~= "table" then
@@ -219,9 +249,9 @@ function lib:EnhanceOptions(optionTable, target)
 	optionTable.plugins[MAJOR] = options
 end
 
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 -- Inspection
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 
 local function iterator(registry, key)
 	local data
@@ -231,13 +261,18 @@ local function iterator(registry, key)
 	end
 end
 
+--- Iterate through enhanced AceDB3.0 instances.
+-- The iterator returns (instance, name) pairs where instance and name are the
+-- arguments that were provided to lib:EnhanceDatabase.
+-- @name LibDualSpec:IterateDatabases
+-- @return Values to be used in a for .. in .. do statement.
 function lib:IterateDatabases()
 	return iterator, lib.registry
 end
 
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 -- Switching logic
---------------------------------------------------------------------------------
+-- ----------------------------------------------------------------------------
 
 lib.eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
 lib.eventFrame:SetScript('OnEvent', function()

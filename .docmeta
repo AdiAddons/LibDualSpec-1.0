@@ -1,0 +1,4 @@
+-
+  type: luadoc
+  input-file: LibDualSpec-1.0
+  output-page: "API reference"
