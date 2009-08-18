@@ -67,7 +67,7 @@ local L_DUALSPEC_DESC, L_ENABLED, L_ENABLED_DESC, L_DUAL_PROFILE
 local L_DUAL_PROFILE_DESC
 
 L_DUALSPEC_DESC = "When enabled, this feature allow you to select a different "..
-		"profil for each talent spec. The dual profile will be swapped with the "..
+		"profile for each talent spec. The dual profile will be swapped with the "..
 		"current profile each time you switch from a talent spec to the other."
 L_ENABLED = 'Enable dual profile'
 L_ENABLED_DESC = 'Check this box to automatically swap profiles on talent switch.'
@@ -83,6 +83,12 @@ if GetLocale() == "frFR" then
 	L_ENABLED_DESC = "Cochez cette case pour échanger automatiquement les profils lors d'un changement de spécialisation."
 	L_DUAL_PROFILE = 'Second profil'
 	L_DUAL_PROFILE_DESC = 'Sélectionnez le profil à échanger avec le profil courant lors du changement de spécialisation.'
+elseif GetLocale() == "zhTW" then
+	L_DUALSPEC_DESC = "啟用時，你可以為你的雙天賦設定另一組設定檔。你的雙設定檔將在你轉換天賦時自動與目前使用設定檔交換。"
+	L_ENABLED = "啟用雙設定檔"
+	L_ENABLED_DESC = "勾選以在轉換天賦時自動交換設定檔"
+	L_DUAL_PROFILE = "雙設定檔"
+	L_DUAL_PROFILE_DESC = "選擇轉換天賦後所要使用的設定檔"
 end
 
 -- ----------------------------------------------------------------------------
