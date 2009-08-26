@@ -63,32 +63,45 @@ local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
 -- Localization
 -- ----------------------------------------------------------------------------
 
-local L_DUALSPEC_DESC, L_ENABLED, L_ENABLED_DESC, L_DUAL_PROFILE
-local L_DUAL_PROFILE_DESC
+local L_DUALSPEC_DESC, L_ENABLED, L_ENABLED_DESC, L_DUAL_PROFILE, L_DUAL_PROFILE_DESC
 
-L_DUALSPEC_DESC = "When enabled, this feature allow you to select a different "..
-		"profile for each talent spec. The dual profile will be swapped with the "..
-		"current profile each time you switch from a talent spec to the other."
-L_ENABLED = 'Enable dual profile'
-L_ENABLED_DESC = 'Check this box to automatically swap profiles on talent switch.'
-L_DUAL_PROFILE = 'Dual profile'
-L_DUAL_PROFILE_DESC = 'Select the profile to swap with on talent switch.'
+do
+	L_DUALSPEC_DESC = "When enabled, this feature allow you to select a different "..
+			"profile for each talent spec. The dual profile will be swapped with the "..
+			"current profile each time you switch from a talent spec to the other."
+	L_ENABLED = 'Enable dual profile'
+	L_ENABLED_DESC = 'Check this box to automatically swap profiles on talent switch.'
+	L_DUAL_PROFILE = 'Dual profile'
+	L_DUAL_PROFILE_DESC = 'Select the profile to swap with on talent switch.'
 
-if GetLocale() == "frFR" then
-	L_DUALSPEC_DESC = "Lorsqu'elle est activée, cette fonctionnalité vous permet "..
-		"de choisir un profil différent pour chaque spécialisation de talents. "..
-		"Le second profil sera échangé avec le profil courant chaque fois que vous "..
-		"passerez d'une spécialisation à l'autre."
-	L_ENABLED = 'Activez le second profil'
-	L_ENABLED_DESC = "Cochez cette case pour échanger automatiquement les profils lors d'un changement de spécialisation."
-	L_DUAL_PROFILE = 'Second profil'
-	L_DUAL_PROFILE_DESC = 'Sélectionnez le profil à échanger avec le profil courant lors du changement de spécialisation.'
-elseif GetLocale() == "zhTW" then
-	L_DUALSPEC_DESC = "啟用時，你可以為你的雙天賦設定另一組設定檔。你的雙設定檔將在你轉換天賦時自動與目前使用設定檔交換。"
-	L_ENABLED = "啟用雙設定檔"
-	L_ENABLED_DESC = "勾選以在轉換天賦時自動交換設定檔"
-	L_DUAL_PROFILE = "雙設定檔"
-	L_DUAL_PROFILE_DESC = "選擇轉換天賦後所要使用的設定檔"
+	local locale = GetLocale()
+	if locale == "frFR" then
+		L_DUALSPEC_DESC = "Lorsqu'elle est activée, cette fonctionnalité vous permet "..
+			"de choisir un profil différent pour chaque spécialisation de talents. "..
+			"Le second profil sera échangé avec le profil courant chaque fois que vous "..
+			"passerez d'une spécialisation à l'autre."
+		L_ENABLED = 'Activez le second profil'
+		L_ENABLED_DESC = "Cochez cette case pour échanger automatiquement les profils "..
+			"lors d'un changement de spécialisation."
+		L_DUAL_PROFILE = 'Second profil'
+		L_DUAL_PROFILE_DESC = "Sélectionnez le profil à échanger avec le profil courant "..
+			"lors du changement de spécialisation."
+	elseif locale == "deDE" then
+		L_DUAL_PROFILE = "Duales Profil"
+		L_DUAL_PROFILE_DESC = "W\195\164hle das Profil, das beim Wechsel der Talente aktiviert wird."
+		L_DUALSPEC_DESC = "Wenn aktiv, wechselt dieses Feature bei jedem Wechsel "..
+			"der dualen Talentspezialisierung das Profil. Das duale Profil wird beim "..
+			"Wechsel automatisch mit dem derzeit aktiven Profil getauscht."
+		L_ENABLED = "Aktiviere Duale Profile"
+		L_ENABLED_DESC = "Aktiviere diese Option, um beim Talentwechsel automatisch "..
+			"zwischen den Profilen zu wechseln."
+	elseif locale == "zhTW" then
+		L_DUALSPEC_DESC = "啟用時，你可以為你的雙天賦設定另一組設定檔。你的雙設定檔將在你轉換天賦時自動與目前使用設定檔交換。"
+		L_ENABLED = "啟用雙設定檔"
+		L_ENABLED_DESC = "勾選以在轉換天賦時自動交換設定檔"
+		L_DUAL_PROFILE = "雙設定檔"
+		L_DUAL_PROFILE_DESC = "選擇轉換天賦後所要使用的設定檔"
+	end
 end
 
 -- ----------------------------------------------------------------------------
