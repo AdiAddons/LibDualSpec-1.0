@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 3
+local MAJOR, MINOR = "LibDualSpec-1.0", 4
 assert(LibStub, MAJOR.." requires LibStub")
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -95,6 +95,12 @@ do
 		L_ENABLED = "Aktiviere Duale Profile"
 		L_ENABLED_DESC = "Aktiviere diese Option, um beim Talentwechsel automatisch "..
 			"zwischen den Profilen zu wechseln."
+	elseif locale == "zhCN" then
+		L_DUAL_PROFILE = "双重配置文件"
+		L_DUAL_PROFILE_DESC = "选择转换天赋时所要使用的配置文件"
+		L_DUALSPEC_DESC = "启时，你可以为你的双天赋设定另一组配置文件，你的双重配置文件将在你转换天赋时自动与目前使用配置文件交换。"
+		L_ENABLED = "开启双重配置文件"
+		L_ENABLED_DESC = "勾选以便转换天赋时自动交换配置文件。"
 	elseif locale == "zhTW" then
 		L_DUALSPEC_DESC = "啟用時，你可以為你的雙天賦設定另一組設定檔。你的雙設定檔將在你轉換天賦時自動與目前使用設定檔交換。"
 		L_ENABLED = "啟用雙設定檔"
@@ -148,8 +154,8 @@ end
 
 --- Check if a profile swap should occur.
 -- Do nothing if the dual spec feature is disabled. In the other
--- case, if the internally stored talent spec the actual active talent
--- spec, the database swap to the alternate profile.
+-- case, if the internally stored talent spec is different from the
+-- actual active talent spec, the database swaps to the alternate profile.
 -- There is normally no reason to call this method directly as LibDualSpec
 -- takes care of calling it at appropriate times.
 -- @name enhancedDB:CheckDualSpecState
