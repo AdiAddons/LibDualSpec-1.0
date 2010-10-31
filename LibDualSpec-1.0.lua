@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 5
+local MAJOR, MINOR = "LibDualSpec-1.0", 6
 assert(LibStub, MAJOR.." requires LibStub")
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -298,13 +298,9 @@ end
 -- Switching logic
 -- ----------------------------------------------------------------------------
 
-function lib.EventHandler(_, event)
-	if event == 'PLAYER_ALIVE' then
-		lib.talentsLoaded = true
-		lib.eventFrame:UnregisterEvent('PLAYER_ALIVE')
-	elseif not lib.talentsLoaded then
-		return
-	end
+lib.eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
+lib.eventFrame:SetScript('OnEvent', function()
+	lib.talentsLoaded = true
 	local newTalentGroup = GetActiveTalentGroup()
 	if lib.talentGroup ~= newTalentGroup then
 		lib.talentGroup = newTalentGroup
@@ -312,17 +308,5 @@ function lib.EventHandler(_, event)
 			target:CheckDualSpecState()
 		end
 	end
-end
-
-lib.eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
-lib.eventFrame:SetScript('OnEvent', lib.EventHandler)
-
--- Initialization
-if not lib.talentsLoaded then
-	if IsLoggedIn() then
-		lib:EventHandler('PLAYER_ALIVE')
-	else
-		lib.eventFrame:RegisterEvent('PLAYER_ALIVE')
-	end
-end
+end)
 
