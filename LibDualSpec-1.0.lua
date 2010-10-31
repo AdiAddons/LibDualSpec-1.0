@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 4
+local MAJOR, MINOR = "LibDualSpec-1.0", 5
 assert(LibStub, MAJOR.." requires LibStub")
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -40,7 +40,6 @@ if not lib then return end
 -- Library data
 -- ----------------------------------------------------------------------------
 
-lib.talentGroup = lib.talentGroup or GetActiveTalentGroup()
 lib.eventFrame = lib.eventFrame or CreateFrame("Frame")
 
 lib.registry = lib.registry or {}
@@ -114,7 +113,7 @@ end
 -- Mixin
 -- ----------------------------------------------------------------------------
 
---- Get dual spec feature status. 
+--- Get dual spec feature status.
 -- @return (boolean) true is dual spec feature enabled.
 -- @name enhancedDB:IsDualSpecEnabled
 function mixin:IsDualSpecEnabled()
@@ -129,7 +128,7 @@ function mixin:SetDualSpecEnabled(enabled)
 	if enabled and not db.char.talentGroup then
 		db.char.talentGroup = lib.talentGroup
 		db.char.profile = self:GetCurrentProfile()
-		db.char.enabled = true	
+		db.char.enabled = true
 	else
 		db.char.enabled = enabled
 		self:CheckDualSpecState()
@@ -146,7 +145,7 @@ end
 
 --- Set the alternate profile name.
 -- No validation are done to ensure the profile is valid.
--- @param profileName (string) the profile name to use. 
+-- @param profileName (string) the profile name to use.
 -- @name enhancedDB:SetDualSpecProfile
 function mixin:SetDualSpecProfile(profileName)
 	registry[self].db.char.profile = profileName
@@ -161,7 +160,7 @@ end
 -- @name enhancedDB:CheckDualSpecState
 function mixin:CheckDualSpecState()
 	local db = registry[self].db
-	if db.char.enabled and db.char.talentGroup ~= lib.talentGroup then
+	if lib.talentsLoaded and db.char.enabled and db.char.talentGroup ~= lib.talentGroup then
 		local currentProfile = self:GetCurrentProfile()
 		local newProfile = db.char.profile
 		db.char.talentGroup = lib.talentGroup
@@ -299,8 +298,13 @@ end
 -- Switching logic
 -- ----------------------------------------------------------------------------
 
-lib.eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
-lib.eventFrame:SetScript('OnEvent', function()
+function lib.EventHandler(_, event)
+	if event == 'PLAYER_ALIVE' then
+		lib.talentsLoaded = true
+		lib.eventFrame:UnregisterEvent('PLAYER_ALIVE')
+	elseif not lib.talentsLoaded then
+		return
+	end
 	local newTalentGroup = GetActiveTalentGroup()
 	if lib.talentGroup ~= newTalentGroup then
 		lib.talentGroup = newTalentGroup
@@ -308,5 +312,17 @@ lib.eventFrame:SetScript('OnEvent', function()
 			target:CheckDualSpecState()
 		end
 	end
-end)
+end
+
+lib.eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
+lib.eventFrame:SetScript('OnEvent', lib.EventHandler)
+
+-- Initialization
+if not lib.talentsLoaded then
+	if IsLoggedIn() then
+		lib:EventHandler('PLAYER_ALIVE')
+	else
+		lib.eventFrame:RegisterEvent('PLAYER_ALIVE')
+	end
+end
 
