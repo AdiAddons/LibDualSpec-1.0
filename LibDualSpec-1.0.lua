@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 9
+local MAJOR, MINOR = "LibDualSpec-1.0", 10
 assert(LibStub, MAJOR.." requires LibStub")
 local lib = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -87,7 +87,7 @@ do
 		L_ENABLED = "Aktiviere Duale Profile"
 		L_ENABLED_DESC = "Aktiviere diese Option, um beim Talentwechsel automatisch zwischen den Profilen zu wechseln."
 	elseif locale == "koKR" then
-		L_DUALSPEC_DESC = "가능하면 사용합니다. 이중 특성에 의하여 다른 프로필을 선택할 수 있게 하니다. 이중 프로필은 현재 프로필과 번갈아서 특성이 변경될 때 같이 적용됩니다."
+		L_DUALSPEC_DESC = "이중 특성에 의하여 다른 프로필을 선택할 수 있게 합니다. 이중 프로필은 현재 프로필과 번갈아서 특성이 변경될 때 같이 적용됩니다."
 		L_DUAL_PROFILE = "이중 프로필"
 		L_DUAL_PROFILE_DESC = "특성이 바뀔 때 프로필을 선택합니다."
 		L_ENABLED = "이중 프로필 사용"
