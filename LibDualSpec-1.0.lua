@@ -1,6 +1,6 @@
 --[[
 LibDualSpec-1.0 - Adds dual spec support to individual AceDB-3.0 databases
-Copyright (C) 2009-2011 Adirelle
+Copyright (C) 2009-2012 Adirelle
 
 All rights reserved.
 
@@ -31,9 +31,9 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 10
+local MAJOR, MINOR = "LibDualSpec-1.0", 11
 assert(LibStub, MAJOR.." requires LibStub")
-local lib = LibStub:NewLibrary(MAJOR, MINOR)
+local lib, minor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
 
 -- ----------------------------------------------------------------------------
@@ -46,6 +46,13 @@ lib.registry = lib.registry or {}
 lib.options = lib.options or {}
 lib.mixin = lib.mixin or {}
 
+-- Rename .talent* to .spec*
+if minor < 11 then
+	lib.specLoaded = lib.talentsLoaded
+	lib.specGroup = lib.talentGroup
+	lib.talentsLoaded, lib.talentGroup = nil, nil
+end
+
 -- ----------------------------------------------------------------------------
 -- Locals
 -- ----------------------------------------------------------------------------
@@ -57,6 +64,13 @@ local mixin = lib.mixin
 -- "Externals"
 local AceDB3 = LibStub('AceDB-3.0', true)
 local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
+
+-- ----------------------------------------------------------------------------
+-- MoP compatibility
+-- ----------------------------------------------------------------------------
+
+local GetActiveSpecGroup = GetActiveSpecGroup or GetActiveTalentGroup
+local GetNumSpecGroups = GetNumSpecGroups or GetNumTalentGroups
 
 -- ----------------------------------------------------------------------------
 -- Localization
@@ -135,8 +149,8 @@ end
 -- @name enhancedDB:SetDualSpecEnabled
 function mixin:SetDualSpecEnabled(enabled)
 	local db = registry[self].db
-	if enabled and not db.char.talentGroup then
-		db.char.talentGroup = lib.talentGroup
+	if enabled and not db.char.specGroup then
+		db.char.specGroup = lib.specGroup
 		db.char.profile = self:GetCurrentProfile()
 		db.char.enabled = true
 	else
@@ -170,10 +184,10 @@ end
 -- @name enhancedDB:CheckDualSpecState
 function mixin:CheckDualSpecState()
 	local db = registry[self].db
-	if lib.talentsLoaded and db.char.enabled and db.char.talentGroup ~= lib.talentGroup then
+	if lib.specLoaded and db.char.enabled and db.char.specGroup ~= lib.specGroup then
 		local currentProfile = self:GetCurrentProfile()
 		local newProfile = db.char.profile
-		db.char.talentGroup = lib.talentGroup
+		db.char.specGroup = lib.specGroup
 		if newProfile ~= currentProfile then
 			db.char.profile = currentProfile
 			self:SetProfile(newProfile)
@@ -232,7 +246,7 @@ end
 -- ----------------------------------------------------------------------------
 
 local function NoDualSpec()
-	return GetNumTalentGroups() == 1
+	return GetNumSpecGroups() == 1
 end
 
 options.dualSpecDesc = {
@@ -317,10 +331,10 @@ end
 
 lib.eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
 lib.eventFrame:SetScript('OnEvent', function()
-	lib.talentsLoaded = true
-	local newTalentGroup = GetActiveTalentGroup()
-	if lib.talentGroup ~= newTalentGroup then
-		lib.talentGroup = newTalentGroup
+	lib.specLoaded = true
+	local newSpecGroup = GetActiveSpecGroup()
+	if lib.specGroup ~= newSpecGroup then
+		lib.specGroup = newSpecGroup
 		for target in pairs(registry) do
 			target:CheckDualSpecState()
 		end
