@@ -47,7 +47,7 @@ lib.options = lib.options or {}
 lib.mixin = lib.mixin or {}
 
 -- Rename .talent* to .spec*
-if minor < 11 then
+if minor and minor < 11 then
 	lib.specLoaded = lib.talentsLoaded
 	lib.specGroup = lib.talentGroup
 	lib.talentsLoaded, lib.talentGroup = nil, nil
