@@ -331,7 +331,7 @@ end
 
 --@debug@
 if _G.AdiDebug and not lib.Debug then
-	_G.AdiDebug:Embed(lib, MAJOR)
+	lib.Debug = _G.AdiDebug:GetSink(MAJOR)
 end
 --@end-debug@
 
@@ -339,12 +339,12 @@ lib.eventFrame:RegisterEvent('PLAYER_TALENT_UPDATE')
 if not lib.specLoaded then
 	lib.eventFrame:RegisterEvent('ADDON_LOADED')
 end
-lib.eventFrame:SetScript('OnEvent', function(_, event)
+lib.eventFrame:SetScript('OnEvent', function(_, event, ...)
 	-- Before the first PLAYER_TALENT_UPDATE, GetActiveSpecGroup() always returns 1.
 	-- However, when LDS is loaded on demand, we cannot afford to wait for a PLAYER_TALENT_UPDATE.
 	-- So we wait either for any PLAYER_TALENT_UPDATE or for an ADDON_LOADED when IsLoggedIn() yields true.
 	--@debug@
-	lib:Debug("Event", event, "IsLoggedIn=", IsLoggedIn(), "GetActiveSpecGroup=", GetActiveSpecGroup())
+	lib.Debug("Event", event, "IsLoggedIn=", IsLoggedIn(), "GetActiveSpecGroup=", GetActiveSpecGroup(), ...)
 	--@end-debug@
 	if event == 'ADDON_LOADED' and not IsLoggedIn() then
 		return
@@ -361,6 +361,10 @@ lib.eventFrame:SetScript('OnEvent', function(_, event)
 		end
 	end
 end)
+
+--@debug@
+lib.Debug("loaded")
+--@end-debug@
 
 --@do-not-package@
 if not lib.testdb then
