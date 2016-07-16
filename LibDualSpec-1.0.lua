@@ -221,6 +221,17 @@ local function UpgradeDatabase(target)
 	end
 end
 
+function lib:OnProfileDeleted(event, target, profileName)
+	local db = registry[target].db.char
+	if not db.enabled then return end
+
+	for i = 1, numSpecs do
+		if db[i] == profileName then
+			db[i] = target:GetCurrentProfile()
+		end
+	end
+end
+
 -- Actually enhance the database
 -- This is used on first initialization and everytime the database is reset using :ResetDB
 function lib:_EnhanceDatabase(event, target)
@@ -251,6 +262,7 @@ function lib:EnhanceDatabase(target, name)
 	UpgradeDatabase(target)
 	lib:_EnhanceDatabase("EnhanceDatabase", target)
 	target.RegisterCallback(lib, "OnDatabaseReset", "_EnhanceDatabase")
+	target.RegisterCallback(lib, "OnProfileDeleted")
 end
 
 -- ----------------------------------------------------------------------------
