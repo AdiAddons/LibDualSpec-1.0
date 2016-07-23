@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 14
+local MAJOR, MINOR = "LibDualSpec-1.0", 15
 assert(LibStub, MAJOR.." requires LibStub")
 local lib, minor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -48,7 +48,7 @@ lib.mixin = lib.mixin or {}
 lib.upgrades = lib.upgrades or {}
 lib.currentSpec = lib.currentSpec or 0
 
-if minor and minor < 14 then
+if minor and minor < 15 then
 	lib.talentsLoaded, lib.talentGroup = nil, nil
 	lib.specLoaded, lib.specGroup = nil, nil
 	lib.eventFrame:UnregisterAllEvents()
@@ -69,9 +69,9 @@ local AceDB3 = LibStub('AceDB-3.0', true)
 local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
 local AceConfigRegistry3 = LibStub('AceConfigRegistry-3.0', true)
 
--- earlier alternative to GetNumSpecializations()
-local _, class = UnitClass("player")
-local numSpecs = class == "DRUID" and 4 or class == "DEMONHUNTER" and 2 or 3
+-- classId specialization functions don't require player data to be loaded
+local _, _, classId = UnitClass("player")
+local numSpecs = GetNumSpecializationsForClassID(classId)
 
 -- ----------------------------------------------------------------------------
 -- Localization
@@ -138,7 +138,7 @@ end
 -- @name enhancedDB:SetDualSpecEnabled
 function mixin:SetDualSpecEnabled(enabled)
 	local db = registry[self].db.char
-	db.enabled = enabled
+	db.enabled = not not enabled
 
 	local currentProfile = self:GetCurrentProfile()
 	for i = 1, numSpecs do
@@ -193,7 +193,7 @@ end
 -- ----------------------------------------------------------------------------
 
 local function EmbedMixin(target)
-	for k,v in pairs(mixin) do
+	for k,v in next, mixin do
 		rawset(target, k, v)
 	end
 end
@@ -302,21 +302,31 @@ options.choose = {
 }
 
 options.enabled = {
-	name = L_ENABLED,
+	name = "|cffffd200"..L_ENABLED.."|r",
 	desc = L_ENABLED_DESC,
+	descStyle = "inline",
 	type = "toggle",
 	order = 41,
+	width = "full",
 	get = function(info) return info.handler.db:IsDualSpecEnabled() end,
 	set = function(info, value) info.handler.db:SetDualSpecEnabled(value) end,
 	hidden = NoDualSpec,
 }
 
-options.newline = {
-	name = "",
-	type = "description",
-	order = 42,
-	hidden = NoDualSpec,
-}
+for i = 1, numSpecs do
+	local _, specName = GetSpecializationInfoForClassID(classId, i)
+	options["specProfile" .. i] = {
+		type = "select",
+		name = function() return lib.currentSpec == i and L_CURRENT:format(specName) or specName end,
+		order = 42 + i,
+		get = function(info) return info.handler.db:GetDualSpecProfile(i) end,
+		set = function(info, value) info.handler.db:SetDualSpecProfile(value, i) end,
+		values = "ListProfiles",
+		arg = "common",
+		disabled = function(info) return not info.handler.db:IsDualSpecEnabled() end,
+		hidden = NoDualSpec,
+	}
+end
 
 --- Embed dual spec options into an existing AceDBOptions-3.0 option table.
 -- @name LibDualSpec:EnhanceOptions
@@ -395,22 +405,6 @@ local function eventHandler(self, event)
 	if event == "PLAYER_LOGIN" then
 		self:UnregisterEvent(event)
 		self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-
-		-- Build the spec options now that spec info should be available
-		for i = 1, numSpecs do
-			local _, specName = GetSpecializationInfo(i)
-			options["specProfile" .. i] = {
-				type = "select",
-				name = function() return lib.currentSpec == i and L_CURRENT:format(specName) or specName end,
-				order = 42 + i,
-				get = function(info) return info.handler.db:GetDualSpecProfile(i) end,
-				set = function(info, value) info.handler.db:SetDualSpecProfile(value, i) end,
-				values = "ListProfiles",
-				arg = "common",
-				disabled = function(info) return not info.handler.db:IsDualSpecEnabled() end,
-				hidden = NoDualSpec,
-			}
-		end
 	end
 
 	if lib.currentSpec > 0 and next(upgrades) then
