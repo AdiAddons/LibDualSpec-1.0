@@ -88,9 +88,9 @@ do
 		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
 		-- L_CURRENT = "%s (Current)"
 	elseif locale == "deDE" then
-		-- L_ENABLED = "Enable spec profiles"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
-		-- L_CURRENT = "%s (Current)"
+		L_ENABLED = "Spezialisierungsprofile aktivieren"
+		L_ENABLED_DESC = "Falls diese Option aktiviert ist, wird dein Profil auf das angegebene Profil gesetzt, wenn du die Spezialisierung wechselst."
+		L_CURRENT = "%s (Momentan)"
 	elseif locale == "koKR" then
 		-- L_ENABLED = "Enable spec profiles"
 		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
