@@ -149,16 +149,16 @@ function mixin:SetDualSpecEnabled(enabled)
 	self:CheckDualSpecState()
 end
 
---- Get the alternate profile name.
+--- Get the profile assigned to a specialization.
 -- Defaults to the current profile.
 -- @param spec (number) the specialization index.
--- @return (string) Alternate profile name.
+-- @return (string) the profile name.
 -- @name enhancedDB:GetDualSpecProfile
 function mixin:GetDualSpecProfile(spec)
 	return registry[self].db.char[spec or lib.currentSpec] or self:GetCurrentProfile()
 end
 
---- Set the alternate profile name.
+--- Set the profile assigned to a specialization.
 -- No validation are done to ensure the profile is valid.
 -- @param profileName (string) the profile name to use.
 -- @param spec (number) the specialization index.
@@ -172,11 +172,8 @@ function mixin:SetDualSpecProfile(profileName, spec)
 end
 
 --- Check if a profile swap should occur.
--- Do nothing if the dual spec feature is disabled. In the other
--- case, if the internally stored talent spec is different from the
--- actual active talent spec, the database swaps to the alternate profile.
 -- There is normally no reason to call this method directly as LibDualSpec
--- takes care of calling it at appropriate times.
+-- takes care of calling it at the appropriate time.
 -- @name enhancedDB:CheckDualSpecState
 function mixin:CheckDualSpecState()
 	if not registry[self].db.char.enabled then return end
@@ -221,6 +218,7 @@ local function UpgradeDatabase(target)
 	end
 end
 
+-- Reset a spec profile to the current one if its profile is deleted.
 function lib:OnProfileDeleted(event, target, profileName)
 	local db = registry[target].db.char
 	if not db.enabled then return end
