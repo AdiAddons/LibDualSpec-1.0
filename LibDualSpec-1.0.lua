@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 15
+local MAJOR, MINOR = "LibDualSpec-1.0", 16
 assert(LibStub, MAJOR.." requires LibStub")
 local lib, minor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -402,7 +402,7 @@ local function eventHandler(self, event)
 
 	if event == "PLAYER_LOGIN" then
 		self:UnregisterEvent(event)
-		self:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+		self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
 	end
 
 	if lib.currentSpec > 0 and next(upgrades) then
