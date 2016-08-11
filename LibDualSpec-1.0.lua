@@ -96,17 +96,17 @@ do
 		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
 		-- L_CURRENT = "%s (Current)"
 	elseif locale == "ruRU" then
-		-- L_ENABLED = "Enable spec profiles"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
-		-- L_CURRENT = "%s (Current)"
+		L_ENABLED = "Включить профили специализации"
+		L_ENABLED_DESC = "Если включено, ваш профиль будет зависеть от выбранной специализации."
+		L_CURRENT = "%s (Текущий)"
 	elseif locale == "zhCN" then
 		-- L_ENABLED = "Enable spec profiles"
 		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
 		-- L_CURRENT = "%s (Current)"
 	elseif locale == "zhTW" then
-		-- L_ENABLED = "Enable spec profiles"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
-		-- L_CURRENT = "%s (Current)"
+		L_ENABLED = "啟用專精設定檔"
+		L_ENABLED_DESC = "當啟用後，當你切換專精時設定檔會設定為專精設定檔。"
+		L_CURRENT = "%s (目前) "
 	elseif locale == "esES" or locale == "esMX" then
 		-- L_ENABLED = "Enable spec profiles"
 		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
