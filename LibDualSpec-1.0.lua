@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 16
+local MAJOR, MINOR = "LibDualSpec-1.0", 17
 assert(LibStub, MAJOR.." requires LibStub")
 local lib, minor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -100,9 +100,9 @@ do
 		L_ENABLED_DESC = "Если включено, ваш профиль будет зависеть от выбранной специализации."
 		L_CURRENT = "%s (Текущий)"
 	elseif locale == "zhCN" then
-		-- L_ENABLED = "Enable spec profiles"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
-		-- L_CURRENT = "%s (Current)"
+		L_ENABLED = "启用专精配置文件"
+		L_ENABLED_DESC = "当启用后，当切换专精时配置文件将设置为专精配置文件。"
+		L_CURRENT = "%s（当前）"
 	elseif locale == "zhTW" then
 		L_ENABLED = "啟用專精設定檔"
 		L_ENABLED_DESC = "當啟用後，當你切換專精時設定檔會設定為專精設定檔。"
