@@ -71,7 +71,10 @@ local AceConfigRegistry3 = LibStub('AceConfigRegistry-3.0', true)
 
 -- classId specialization functions don't require player data to be loaded
 local _, _, classId = UnitClass("player")
-local numSpecs = GetNumSpecializationsForClassID(classId)
+local numSpecs = 1
+if GetNumSpecializationsForClassID~=nil then
+	numSpecs = GetNumSpecializationsForClassID(classId)
+end
 
 -- ----------------------------------------------------------------------------
 -- Localization
@@ -311,19 +314,22 @@ options.enabled = {
 	hidden = NoDualSpec,
 }
 
-for i = 1, numSpecs do
-	local _, specName = GetSpecializationInfoForClassID(classId, i)
-	options["specProfile" .. i] = {
-		type = "select",
-		name = function() return lib.currentSpec == i and L_CURRENT:format(specName) or specName end,
-		order = 42 + i,
-		get = function(info) return info.handler.db:GetDualSpecProfile(i) end,
-		set = function(info, value) info.handler.db:SetDualSpecProfile(value, i) end,
-		values = "ListProfiles",
-		arg = "common",
-		disabled = function(info) return not info.handler.db:IsDualSpecEnabled() end,
-		hidden = NoDualSpec,
-	}
+-- check for WoW Classic
+if GetSpecializationInfoForClassID~=nil then
+	for i = 1, numSpecs do
+		local _, specName = GetSpecializationInfoForClassID(classId, i)
+		options["specProfile" .. i] = {
+			type = "select",
+			name = function() return lib.currentSpec == i and L_CURRENT:format(specName) or specName end,
+			order = 42 + i,
+			get = function(info) return info.handler.db:GetDualSpecProfile(i) end,
+			set = function(info, value) info.handler.db:SetDualSpecProfile(value, i) end,
+			values = "ListProfiles",
+			arg = "common",
+			disabled = function(info) return not info.handler.db:IsDualSpecEnabled() end,
+			hidden = NoDualSpec,
+		}
+	end
 end
 
 --- Embed dual spec options into an existing AceDBOptions-3.0 option table.
@@ -398,6 +404,11 @@ end
 -- ----------------------------------------------------------------------------
 
 local function eventHandler(self, event)
+	-- WoW Classic has no specializations, short-circuit complete event handler
+	if not GetSpecialization~=nil then
+        lib.currentSpec = 0
+		return
+	end
 	lib.currentSpec = GetSpecialization() or 0
 
 	if event == "PLAYER_LOGIN" then
