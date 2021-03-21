@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -- just bail out on classic, there is no DualSpec there
 if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return end
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 19
+local MAJOR, MINOR = "LibDualSpec-1.0", 20
 assert(LibStub, MAJOR.." requires LibStub")
 local lib, minor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -410,18 +410,20 @@ end
 -- ----------------------------------------------------------------------------
 
 local function eventHandler(self, event)
-	lib.currentSpec = GetSpecialization() or 0
+	local spec = GetSpecialization() or 0
 	-- Newly created characters start at 5 instead of 1 in 9.0.1.
-	if lib.currentSpec == 5 or not C_SpecializationInfo.CanPlayerUseTalentSpecUI() then
-		lib.currentSpec = 0
+	if spec == 5 or not C_SpecializationInfo.CanPlayerUseTalentSpecUI() then
+		spec = 0
 	end
+	lib.currentSpec = spec
 
 	if event == "PLAYER_LOGIN" then
 		self:UnregisterEvent(event)
 		self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
+		self:RegisterEvent("PLAYER_LEVEL_CHANGED")
 	end
 
-	if lib.currentSpec > 0 and next(upgrades) then
+	if spec > 0 and next(upgrades) then
 		for target in next, upgrades do
 			UpgradeDatabase(target)
 		end
