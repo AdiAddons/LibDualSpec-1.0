@@ -72,7 +72,7 @@ local AceDB3 = LibStub('AceDB-3.0', true)
 local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
 local AceConfigRegistry3 = LibStub('AceConfigRegistry-3.0', true)
 
--- classId specialization functions don't require player data to be loaded
+-- class id specialization functions don't require player data to be loaded
 local _, _, classId = UnitClass("player")
 local numSpecs = GetNumSpecializationsForClassID(classId)
 
@@ -82,19 +82,35 @@ local numSpecs = GetNumSpecializationsForClassID(classId)
 
 local L_ENABLED = "Enable spec profiles"
 local L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
-local L_CURRENT = "%s (Current)" -- maybe something like >> %s << and/or coloring to avoid localization?
+local L_CURRENT = "%s (Current)"
 
 do
 	local locale = GetLocale()
-	if locale == "frFR" then
-		-- L_ENABLED = "Enable spec profiles"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
-		-- L_CURRENT = "%s (Current)"
-	elseif locale == "deDE" then
+	if locale == "deDE" then
 		L_ENABLED = "Spezialisierungsprofile aktivieren"
 		L_ENABLED_DESC = "Falls diese Option aktiviert ist, wird dein Profil auf das angegebene Profil gesetzt, wenn du die Spezialisierung wechselst."
 		L_CURRENT = "%s (Momentan)"
+	elseif locale == "esES" then
+		-- L_ENABLED = "Enable spec profiles"
+		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
+		-- L_CURRENT = "%s (Current)"
+	elseif locale == "esMX" then
+		-- L_ENABLED = "Enable spec profiles"
+		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
+		-- L_CURRENT = "%s (Current)"
+	elseif locale == "frFR" then
+		-- L_ENABLED = "Enable spec profiles"
+		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
+		-- L_CURRENT = "%s (Current)"
+	elseif locale == "itIT" then
+		-- L_ENABLED = "Enable spec profiles"
+		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
+		-- L_CURRENT = "%s (Current)"
 	elseif locale == "koKR" then
+		-- L_ENABLED = "Enable spec profiles"
+		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
+		-- L_CURRENT = "%s (Current)"
+	elseif locale == "ptBR" then
 		-- L_ENABLED = "Enable spec profiles"
 		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
 		-- L_CURRENT = "%s (Current)"
@@ -110,18 +126,6 @@ do
 		L_ENABLED = "啟用專精設定檔"
 		L_ENABLED_DESC = "當啟用後，當你切換專精時設定檔會設定為專精設定檔。"
 		L_CURRENT = "%s (目前) "
-	elseif locale == "esES" or locale == "esMX" then
-		-- L_ENABLED = "Enable spec profiles"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
-		-- L_CURRENT = "%s (Current)"
-	elseif locale == "ptBR" then
-		-- L_ENABLED = "Enable spec profiles"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
-		-- L_CURRENT = "%s (Current)"
-	elseif locale == "itIT" then
-		-- L_ENABLED = "Enable spec profiles"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
-		-- L_CURRENT = "%s (Current)"
 	end
 end
 
