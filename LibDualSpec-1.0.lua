@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -- Don't load unless we are Retail or Wrath Classic
 if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE and WOW_PROJECT_ID ~= WOW_PROJECT_WRATH_CLASSIC then return end
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 20
+local MAJOR, MINOR = "LibDualSpec-1.0", 21
 assert(LibStub, MAJOR.." requires LibStub")
 local lib, minor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
