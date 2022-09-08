@@ -458,6 +458,7 @@ local function eventHandler(self, event)
 
 	if event == "PLAYER_LOGIN" then
 		self:UnregisterEvent(event)
+		self:RegisterEvent("PLAYER_ENTERING_WORLD")
 		if isRetail then
 			self:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player")
 			self:RegisterEvent("PLAYER_LEVEL_CHANGED")
