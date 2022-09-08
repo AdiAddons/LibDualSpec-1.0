@@ -106,11 +106,11 @@ do
 		L_CURRENT = "%s - Aktiv"
 	elseif locale == "esES" or locale == "esMX" then
 		L_ENABLED = "Activar perfiles de especialización"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
+		L_ENABLED_DESC = "Cuando está habilitado, su perfil se establecerá en el perfil especificado cuando cambie de especialización."
 		L_CURRENT = "%s - Activo"
 	elseif locale == "frFR" then
 		L_ENABLED = "Activer les profils de spécialisation"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
+		L_ENABLED_DESC = "Lorsque cette option est activée, votre profil sera défini sur le profil spécifié lorsque vous changerez de spécialisation."
 		L_CURRENT = "%s - Actifs"
 	elseif locale == "itIT" then
 		L_ENABLED = "Abilita i profili per la specializzazione"
@@ -118,11 +118,11 @@ do
 		L_CURRENT = "%s - Attivi"
 	elseif locale == "koKR" then
 		L_ENABLED = "전문화 프로필 활성화"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
+		L_ENABLED_DESC = "활성화하면 전문화를 변경할 때 프로필이 지정된 프로필로 설정됩니다."
 		L_CURRENT = "%s - 활성화"
 	elseif locale == "ptBR" then
 		L_ENABLED = "Ativar perfis de especialização"
-		-- L_ENABLED_DESC = "When enabled, your profile will be set to the specified profile when you change specialization."
+		L_ENABLED_DESC = "Quando ativado, seu perfil será definido para o perfil especificado quando você alterar a especialização."
 		L_CURRENT = "%s – ativo"
 	elseif locale == "ruRU" then
 		L_ENABLED = "Включить профили специализации"
