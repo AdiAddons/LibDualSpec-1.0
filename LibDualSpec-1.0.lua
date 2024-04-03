@@ -1,6 +1,6 @@
 --[[
 LibDualSpec-1.0 - Adds dual spec support to individual AceDB-3.0 databases
-Copyright (C) 2009-2022 Adirelle
+Copyright (C) 2009-2024 Adirelle
 
 All rights reserved.
 
