@@ -427,21 +427,23 @@ end
 -- Inspection
 -- ----------------------------------------------------------------------------
 
-local function iterator(registry, key)
-	local data
-	key, data = next(registry, key)
-	if key then
-		return key, data.name
+do
+	local function iterator(t, key)
+		local data
+		key, data = next(t, key)
+		if key then
+			return key, data.name
+		end
 	end
-end
 
---- Iterate through enhanced AceDB3.0 instances.
--- The iterator returns (instance, name) pairs where instance and name are the
--- arguments that were provided to lib:EnhanceDatabase.
--- @name LibDualSpec:IterateDatabases
--- @return Values to be used in a for .. in .. do statement.
-function lib:IterateDatabases()
-	return iterator, lib.registry
+	--- Iterate through enhanced AceDB3.0 instances.
+	-- The iterator returns (instance, name) pairs where instance and name are the
+	-- arguments that were provided to lib:EnhanceDatabase.
+	-- @name LibDualSpec:IterateDatabases
+	-- @return Values to be used in a for .. in .. do statement.
+	function lib:IterateDatabases()
+		return iterator, lib.registry
+	end
 end
 
 -- ----------------------------------------------------------------------------
@@ -514,9 +516,9 @@ if not lib.testdb then
 		testdb:RegisterCallback("OnDatabaseReset", print)
 		testdb:RegisterCallback("OnDatabaseShutdown", print)
 		lib:EnhanceDatabase(testdb, key)
-		local options = ADO:GetOptionsTable(testdb)
-		lib:EnhanceOptions(options, testdb)
-		AC:RegisterOptionsTable(key, options)
+		local toptions = ADO:GetOptionsTable(testdb)
+		lib:EnhanceOptions(toptions, testdb)
+		AC:RegisterOptionsTable(key, toptions)
 		SlashCmdList["SPECPROFILES"] = function() ACD:Open(key) end
 		SLASH_SPECPROFILES1 = "/testdb"
 	end
