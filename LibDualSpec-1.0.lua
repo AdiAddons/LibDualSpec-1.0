@@ -346,7 +346,12 @@ for i = 1, numSpecs do
 			local specIndex = tonumber(info[#info]:sub(-1))
 			local highPointsSpentIndex = nil
 			for treeIndex = 1, 3 do
-				local name, _, pointsSpent, _, previewPointsSpent = GetTalentTabInfo(treeIndex, false, false, specIndex)
+				local name, pointsSpent, previewPointsSpent, _
+				if WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC then
+					_, name, _, _, pointsSpent, _, previewPointsSpent = GetTalentTabInfo(treeIndex, nil, nil, specIndex)
+				else
+					name, _, pointsSpent, _, previewPointsSpent = GetTalentTabInfo(treeIndex, nil, nil, specIndex)
+				end
 				if name then
 					local displayPointsSpent = pointsSpent + previewPointsSpent
 					points[treeIndex] = displayPointsSpent
