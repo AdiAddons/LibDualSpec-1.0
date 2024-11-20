@@ -1,4 +1,4 @@
-## Interface: 11503, 30403, 40400, 100207
+## Interface: 11505, 20504, 30403, 40401, 110005, 110007
 ## LoadOnDemand: 1
 ## Title: Lib: DualSpec-1.0
 ## Version: @project-version@
