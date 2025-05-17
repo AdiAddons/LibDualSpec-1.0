@@ -78,7 +78,7 @@ local specNames = {TALENT_SPEC_PRIMARY, TALENT_SPEC_SECONDARY}
 if isRetail then
 	-- class id specialization functions don't require player data to be loaded
 	local _, classId = UnitClassBase("player")
-	numSpecs = GetNumSpecializationsForClassID(classId)
+	numSpecs = C_SpecializationInfo.GetNumSpecializationsForClassID(classId)
 	for i = 1, numSpecs do
 		local _, name = GetSpecializationInfoForClassID(classId, i)
 		specNames[i] = name
@@ -86,7 +86,7 @@ if isRetail then
 end
 
 local GetSpecialization = isRetail and GetSpecialization or GetActiveTalentGroup
-local CanPlayerUseTalentSpecUI = isRetail and C_SpecializationInfo.CanPlayerUseTalentSpecUI or function()
+local CanPlayerUseTalentSpecUI = C_SpecializationInfo.CanPlayerUseTalentSpecUI or function()
 	return true, HELPFRAME_CHARACTER_BULLET5
 end
 
