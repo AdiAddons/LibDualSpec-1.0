@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 32
+local MAJOR, MINOR = "LibDualSpec-1.0", 33
 assert(LibStub, MAJOR.." requires LibStub")
 local lib, minor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -69,7 +69,11 @@ local AceDB3 = LibStub('AceDB-3.0', true)
 local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
 local AceConfigRegistry3 = LibStub('AceConfigRegistry-3.0', true)
 
-local isSpecBased = ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA)
+local isForever do
+	local version = select(4, GetBuildInfo())
+	isForever = version > 16000 and version < 20000
+end
+local isSpecBased = ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA) and not isForever
 local numSpecs
 local specNames = {}
 if isSpecBased then
