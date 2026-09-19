@@ -492,11 +492,13 @@ end
 local function eventHandler(self, event)
 	local spec = 0
 	if isSpecBased then
-		spec = GetSpecialization()
-		if not spec or not C_SpecializationInfo.CanPlayerUseTalentUI() or spec > GetNumSpecializations() then -- can't use talents or is initial spec
+		spec = C_SpecializationInfo.GetSpecialization()
+		if not spec or not C_SpecializationInfo.CanPlayerUseTalentUI() or spec > GetNumSpecializations() then
+			-- loading, can't use talents, or is initial spec
 			spec = 0
 		end
-	elseif GetNumSpecGroups() > 1 then -- has dual specialization
+	elseif GetNumSpecGroups() > 1 then
+		-- has dual specialization
 		spec = C_SpecializationInfo.GetActiveSpecGroup()
 	end
 	lib.currentSpec = spec
