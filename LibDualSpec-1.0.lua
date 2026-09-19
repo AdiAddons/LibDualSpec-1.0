@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 33
+local MAJOR, MINOR = "LibDualSpec-1.0", 34
 assert(LibStub, MAJOR.." requires LibStub")
 local lib, minor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -497,7 +497,7 @@ local function eventHandler(self, event)
 			-- loading, can't use talents, or is initial spec
 			spec = 0
 		end
-	elseif GetNumSpecGroups() > 1 then
+	elseif WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or GetNumSpecGroups() > 1 then
 		-- has dual specialization
 		spec = C_SpecializationInfo.GetActiveSpecGroup()
 	end
