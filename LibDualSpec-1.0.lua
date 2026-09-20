@@ -64,10 +64,9 @@ local options = lib.options
 local mixin = lib.mixin
 local upgrades = lib.upgrades
 
--- "Externals"
-local AceDB3 = LibStub('AceDB-3.0', true)
-local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
-local AceConfigRegistry3 = LibStub('AceConfigRegistry-3.0', true)
+local AceDB3 = LibStub("AceDB-3.0", true)
+local AceDBOptions3 = LibStub("AceDBOptions-3.0", true)
+local AceConfigRegistry3 = LibStub("AceConfigRegistry-3.0", true)
 
 local isSpecBased = ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA)
 do -- XXX ClassicExpansionAtLeast is always true in Forever, which uses Dual Specialization
@@ -76,17 +75,19 @@ do -- XXX ClassicExpansionAtLeast is always true in Forever, which uses Dual Spe
 		isSpecBased = false
 	end
 end
+
 local numSpecs
 local specNames = {}
 if isSpecBased then
-	-- class id specialization functions don't require player data to be loaded
-	local _, classId = UnitClassBase("player")
+	-- Class id specialization functions don't require player data to be loaded
+	local _, _, classId = UnitClass("player")
 	numSpecs = C_SpecializationInfo.GetNumSpecializationsForClassID(classId)
 	for i = 1, numSpecs do
 		local _, name = GetSpecializationInfoForClassID(classId, i)
 		specNames[i] = name
 	end
-else -- Primary/secondary system
+else
+	-- Primary/secondary system
 	numSpecs = 2
 	specNames[1] = TALENT_SPEC_PRIMARY
 	specNames[2] = TALENT_SPEC_SECONDARY
@@ -278,7 +279,7 @@ end
 -- @param target (table) the AceDB-3.0 instance.
 -- @param name (string) a user-friendly name of the database (best bet is the addon name).
 function lib:EnhanceDatabase(target, name)
-	AceDB3 = AceDB3 or LibStub('AceDB-3.0', true)
+	AceDB3 = AceDB3 or LibStub("AceDB-3.0", true)
 	if type(target) ~= "table" then
 		error("Usage: LibDualSpec:EnhanceDatabase(target, name): target should be a table.", 2)
 	elseif type(name) ~= "string" then
@@ -422,8 +423,8 @@ end
 -- @param optionTable (table) The option table returned by AceDBOptions-3.0.
 -- @param target (table) The AceDB-3.0 the options operate on.
 function lib:EnhanceOptions(optionTable, target)
-	AceDBOptions3 = AceDBOptions3 or LibStub('AceDBOptions-3.0', true)
-	AceConfigRegistry3 = AceConfigRegistry3 or LibStub('AceConfigRegistry-3.0', true)
+	AceDBOptions3 = AceDBOptions3 or LibStub("AceDBOptions-3.0", true)
+	AceConfigRegistry3 = AceConfigRegistry3 or LibStub("AceConfigRegistry-3.0", true)
 	if type(optionTable) ~= "table" then
 		error("Usage: LibDualSpec:EnhanceOptions(optionTable, target): optionTable should be a table.", 2)
 	elseif type(target) ~= "table" then
@@ -571,12 +572,10 @@ end
 
 --@do-not-package@
 if not lib.testdb then
-	local AC = LibStub("AceConfig-3.0", true)
-	local ACD = LibStub("AceConfigDialog-3.0", true)
-	local ADO = LibStub("AceDBOptions-3.0", true)
-	if AC and ACD and ADO then
-		local key = format("%s-%d test", MAJOR, MINOR)
-		local testdb = LibStub('AceDB-3.0'):New(key)
+	local AceConfigDialog3 = LibStub("AceConfigDialog-3.0", true)
+	if AceConfigRegistry3 and AceConfigDialog3 and AceDBOptions3 then
+		local key = ("%s-%d test"):format(MAJOR, MINOR)
+		local testdb = LibStub("AceDB-3.0"):New(key)
 		lib.testdb = testdb
 		testdb:RegisterCallback("OnNewProfile", print)
 		testdb:RegisterCallback("OnProfileChanged", print)
@@ -587,10 +586,10 @@ if not lib.testdb then
 		testdb:RegisterCallback("OnDatabaseReset", print)
 		testdb:RegisterCallback("OnDatabaseShutdown", print)
 		lib:EnhanceDatabase(testdb, key)
-		local toptions = ADO:GetOptionsTable(testdb)
+		local toptions = AceDBOptions3:GetOptionsTable(testdb)
 		lib:EnhanceOptions(toptions, testdb)
-		AC:RegisterOptionsTable(key, toptions)
-		SlashCmdList["SPECPROFILES"] = function() ACD:Open(key) end
+		AceConfigRegistry3:RegisterOptionsTable(key, toptions)
+		SlashCmdList["SPECPROFILES"] = function() AceConfigDialog3:Open(key) end
 		SLASH_SPECPROFILES1 = "/testdb"
 	end
 end
