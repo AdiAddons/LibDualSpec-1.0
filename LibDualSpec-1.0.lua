@@ -331,7 +331,12 @@ options.choose = {
 
 options.enabled = {
 	type = "toggle",
-	name = "|cffffd200"..L_ENABLED.."|r",
+	name = function()
+		if lib.currentSpec == 0 then
+			return L_ENABLED
+		end
+		return "|cffffd200"..L_ENABLED.."|r"
+	end,
 	desc = function()
 		local desc = L_ENABLED_DESC
 		if lib.currentSpec == 0 then
