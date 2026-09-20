@@ -337,7 +337,7 @@ options.enabled = {
 		if lib.currentSpec == 0 then
 			if isSpecBased then
 				local _, reason = C_SpecializationInfo.CanPlayerUseTalentUI()
-				if reason == "" then
+				if not reason or reason == "" or reason == "LEVEL_TOO_LOW" then
 					reason = TALENT_MICRO_BUTTON_NO_SPEC -- You have not chosen a class specialization.
 				end
 				desc = desc .. "\n\n" .. RED_FONT_COLOR:WrapTextInColorCode(reason)
