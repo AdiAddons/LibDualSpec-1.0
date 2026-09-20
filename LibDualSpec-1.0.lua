@@ -31,7 +31,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --]]
 
-local MAJOR, MINOR = "LibDualSpec-1.0", 34
+local MAJOR, MINOR = "LibDualSpec-1.0", 35
 assert(LibStub, MAJOR.." requires LibStub")
 local lib, minor = LibStub:NewLibrary(MAJOR, MINOR)
 if not lib then return end
@@ -69,11 +69,13 @@ local AceDB3 = LibStub('AceDB-3.0', true)
 local AceDBOptions3 = LibStub('AceDBOptions-3.0', true)
 local AceConfigRegistry3 = LibStub('AceConfigRegistry-3.0', true)
 
-local isForever do
+local isSpecBased = ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA)
+do -- XXX ClassicExpansionAtLeast is always true in Forever, which uses Dual Specialization
 	local version = select(4, GetBuildInfo())
-	isForever = version > 16000 and version < 20000
+	if version > 16000 and version < 20000 then
+		isSpecBased = false
+	end
 end
-local isSpecBased = ClassicExpansionAtLeast(LE_EXPANSION_MISTS_OF_PANDARIA) and not isForever
 local numSpecs
 local specNames = {}
 if isSpecBased then
@@ -489,18 +491,37 @@ end
 -- Switching logic
 -- ----------------------------------------------------------------------------
 
-local function eventHandler(self, event)
-	local spec = 0
+local GetProfileSpecialization do
 	if isSpecBased then
-		spec = C_SpecializationInfo.GetSpecialization()
-		if not spec or not C_SpecializationInfo.CanPlayerUseTalentUI() or spec > GetNumSpecializations() then
-			-- loading, can't use talents, or is initial spec
-			spec = 0
+		function GetProfileSpecialization()
+			local spec = C_SpecializationInfo.GetSpecialization()
+			if not spec or not C_SpecializationInfo.CanPlayerUseTalentUI() or spec > GetNumSpecializations() then
+				-- Player is loading, can't use talents, or is in initial spec.
+				spec = 0
+			end
+			return spec
 		end
-	elseif WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or GetNumSpecGroups() > 1 then
-		-- has dual specialization
-		spec = C_SpecializationInfo.GetActiveSpecGroup()
+	elseif ClassicExpansionAtMost(LE_EXPANSION_CATACLYSM) then
+		function GetProfileSpecialization()
+			if GetNumTalentGroups() > 1 then
+				-- Player has dual specialization unlocked.
+				return C_SpecializationInfo.GetActiveSpecGroup()
+			end
+			return 0
+		end
+	else -- Forever
+		function GetProfileSpecialization()
+			if GetNumSpecGroups() > 1 then
+				-- Player has dual specialization unlocked.
+				return C_SpecializationInfo.GetActiveSpecGroup()
+			end
+			return 0
+		end
 	end
+end
+
+local function OnEvent(self, event)
+	local spec = GetProfileSpecialization()
 	lib.currentSpec = spec
 
 	if event == "PLAYER_LOGIN" then
@@ -536,9 +557,9 @@ local function eventHandler(self, event)
 	end
 end
 
-lib.eventFrame:SetScript("OnEvent", eventHandler)
+lib.eventFrame:SetScript("OnEvent", OnEvent)
 if IsLoggedIn() then
-	eventHandler(lib.eventFrame, "PLAYER_LOGIN")
+	OnEvent(lib.eventFrame, "PLAYER_LOGIN")
 else
 	lib.eventFrame:RegisterEvent("PLAYER_LOGIN")
 end
